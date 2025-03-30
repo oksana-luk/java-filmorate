@@ -65,6 +65,9 @@ public class UserController {
             setLogWarn(method, String.format("Email %s is already taken", user.getEmail()));
             throw new ValidationException("Email is already taken");
         }
+        if (Objects.isNull(user.getName()) || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
         users.put(user.getId(), user);
         usersEmail.add(user.getEmail());
         log.debug("{}: the process was completed successfully. A user {} with id {} was updated", method, user.getLogin(), user.getId());
@@ -94,17 +97,20 @@ public class UserController {
     }
 
     private void partialUpdate(User sourceUser, User receiveUser) {
+        if (!Objects.isNull(sourceUser.getLogin())) {
+            receiveUser.setLogin(sourceUser.getLogin());
+        }
         if (!Objects.isNull(sourceUser.getName())) {
             receiveUser.setName(sourceUser.getName());
+            if (receiveUser.getName().isBlank()) {
+                receiveUser.setName(receiveUser.getLogin());
+            }
         }
         if (!Objects.isNull(sourceUser.getEmail())) {
             receiveUser.setEmail(sourceUser.getEmail());
         }
         if (!Objects.isNull(sourceUser.getBirthday())) {
             receiveUser.setBirthday(sourceUser.getBirthday());
-        }
-        if (!Objects.isNull(sourceUser.getLogin())) {
-            receiveUser.setLogin(sourceUser.getLogin());
         }
     }
 

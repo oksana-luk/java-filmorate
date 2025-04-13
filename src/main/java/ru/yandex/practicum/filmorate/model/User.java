@@ -29,7 +29,9 @@ public class User {
 
     protected String name;
 
-    public User() {}
+    public User() {
+
+    }
 
     public User(User user) {
         this.id = user.getId();

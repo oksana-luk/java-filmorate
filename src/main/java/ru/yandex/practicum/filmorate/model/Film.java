@@ -29,7 +29,9 @@ public class Film {
     @NotNull(groups = CreateInfo.class)
     protected Integer duration;
 
-    public Film() {}
+    public Film() {
+
+    }
 
     public Film(Film film) {
         this.id = film.getId();

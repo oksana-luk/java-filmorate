@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -28,8 +29,7 @@ public class FilmService {
     }
 
     public Film findFilmById(Long id) {
-        validateNotFound(id);
-        return filmStorage.findFilmById(id).get();
+        return validateNotFound(id);
     }
 
     public Film createFilm(Film film) {
@@ -47,8 +47,7 @@ public class FilmService {
     }
 
     public Film partialUpdate(Long id, Map<String, Object> updates) {
-        validateNotFound(id);
-        Film currentFilm = filmStorage.findFilmById(id).get();
+        Film currentFilm = validateNotFound(id);
         updates.forEach((key, value) -> {
             Field field = ReflectionUtils.findField(Film.class, key);
             if (field != null && !field.getName().equals("id")) {
@@ -120,11 +119,14 @@ public class FilmService {
         setLogValidationSuccess(film);
     }
 
-    private void validateNotFound(Long id) {
-        if (filmStorage.findFilmById(id).isEmpty()) {
+    private Film validateNotFound(Long id) {
+        Optional<Film> filmOpt = filmStorage.findFilmById(id);
+        if (filmOpt.isEmpty()) {
             String message = String.format("The service did not find a movie by id %s", id);
             setLogWarn(message);
             throw new NotFoundException(message);
+        } else {
+            return filmOpt.get();
         }
     }
 

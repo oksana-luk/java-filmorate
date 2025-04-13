@@ -26,8 +26,7 @@ public class UserService {
     }
 
     public User findUserById(Long id) {
-        validateNotFound(id);
-        return userStorage.findUserById(id).get();
+        return validateNotFound(id);
     }
 
     public User createUser(User user) {
@@ -44,9 +43,8 @@ public class UserService {
     }
 
     public User updateUser(User user) {
-        validateNotFound(user.getId());
+        User currentUser = validateNotFound(user.getId());
         validateLogin(user);
-        User currentUser = userStorage.findUserById(user.getId()).get();
         if (!currentUser.getEmail().equals(user.getEmail())) {
             validateEmail(user);
         }
@@ -57,8 +55,7 @@ public class UserService {
     }
 
     public User partialUpdate(Long id, Map<String, Object> updates) {
-        validateNotFound(id);
-        User currentUser = userStorage.findUserById(id).get();
+        User currentUser = validateNotFound(id);
         updates.forEach((key, value) -> {
             Field field = ReflectionUtils.findField(User.class, key);
             if (field != null && !field.getName().equals("id")) {
@@ -104,18 +101,17 @@ public class UserService {
     public Collection<User> getCommonFriends(Long id, Long otherId) {
         validateNotFound(id);
         validateNotFound(otherId);
-        Collection<User> friends1 = userStorage.getFriends(id);
-        Collection<User> friends2 = userStorage.getFriends(otherId);
-        Collection<User> commonFriends = new ArrayList<>(friends1);
-        commonFriends.retainAll(friends2);
-        return commonFriends;
+        return userStorage.getCommonFriends(id, otherId);
     }
 
-    private void validateNotFound(Long id) {
-        if (userStorage.findUserById(id).isEmpty()) {
+    private User validateNotFound(Long id) {
+        Optional<User> userOpt = userStorage.findUserById(id);
+        if (userOpt.isEmpty()) {
             String message = String.format("The service did not find user by id %s", id);
             setLogWarn(message);
             throw new NotFoundException(message);
+        } else {
+            return userOpt.get();
         }
     }
 

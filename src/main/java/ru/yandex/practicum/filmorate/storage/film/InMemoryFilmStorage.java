@@ -51,12 +51,12 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public void likeFilm(Long id, Long userId) {
-        if (!likes.containsKey(id)) {
+        if (likes.containsKey(id)) {
+            likes.get(id).add(userId);
+        } else {
             Set<Long> users = new HashSet<>();
             users.add(userId);
             likes.put(id, users);
-        } else {
-            likes.get(id).add(userId);
         }
     }
 

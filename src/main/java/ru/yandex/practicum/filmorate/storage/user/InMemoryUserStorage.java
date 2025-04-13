@@ -90,13 +90,23 @@ public class InMemoryUserStorage implements UserStorage {
         return Collections.emptyList();
     }
 
+    @Override
+    public Collection<User> getCommonFriends(Long id, Long otherId) {
+        Set<Long> friends1 = friends.get(id);
+        Set<Long> friends2 = friends.get(otherId);
+        return friends1.stream()
+                .filter(friends2::contains)
+                .map(users::get)
+                .collect(Collectors.toList());
+    }
+
     private void addFriendTo(Long id, Long friendId) {
-        if (!friends.containsKey(id)) {
+        if (friends.containsKey(id)) {
+            friends.get(id).add(friendId);
+        } else {
             Set<Long> setFriends = new HashSet<>();
             setFriends.add(friendId);
             friends.put(id, setFriends);
-        } else {
-            friends.get(id).add(friendId);
         }
     }
 

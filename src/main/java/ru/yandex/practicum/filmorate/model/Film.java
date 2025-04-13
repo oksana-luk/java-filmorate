@@ -3,8 +3,8 @@ package ru.yandex.practicum.filmorate.model;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.format.annotation.DateTimeFormat;
 
-import java.time.Duration;
 import java.time.LocalDate;
 
 @Data
@@ -22,9 +22,22 @@ public class Film {
     protected String description;
 
     @NotNull(groups = CreateInfo.class)
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @EqualsAndHashCode.Include
     protected LocalDate releaseDate;
 
     @NotNull(groups = CreateInfo.class)
-    protected Duration duration;
+    protected Integer duration;
+
+    public Film() {
+
+    }
+
+    public Film(Film film) {
+        this.id = film.getId();
+        this.name = film.getName();
+        this.description = film.getDescription();
+        this.releaseDate = film.getReleaseDate();
+        this.duration = film.getDuration();
+    }
 }

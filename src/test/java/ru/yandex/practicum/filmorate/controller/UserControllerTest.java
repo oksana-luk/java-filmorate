@@ -2,12 +2,17 @@ package ru.yandex.practicum.filmorate.controller;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.filmorate.exception.DuplicateException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -18,7 +23,9 @@ public class UserControllerTest {
 
     @BeforeEach
     void beforeEach() {
-        userController = new UserController();
+        UserStorage userStorage = new InMemoryUserStorage();
+        UserService userService = new UserService(userStorage);
+        userController = new UserController(userService);
     }
 
     @Test
@@ -65,7 +72,7 @@ public class UserControllerTest {
         secondUser.setLogin("login2");
         secondUser.setBirthday(LocalDate.of(2002, 2, 2));
         secondUser.setEmail(duplicateEmail);
-        assertThrows(ValidationException.class, () -> userController.createUser(secondUser), "New user with incorrect email was created.");
+        assertThrows(DuplicateException.class, () -> userController.createUser(secondUser), "New user with incorrect email was created.");
     }
 
     @Test
@@ -161,7 +168,7 @@ public class UserControllerTest {
         user.setName("secondName");
         user.setBirthday(LocalDate.of(2000, 1, 1));
         user.setEmail("my1email@mail.com");
-        assertThrows(ValidationException.class, () -> userController.updateUser(user));
+        assertThrows(DuplicateException.class, () -> userController.updateUser(user));
     }
 
     @Test
@@ -197,10 +204,8 @@ public class UserControllerTest {
         user.setBirthday(LocalDate.of(2000, 1, 1));
         User createdUser = userController.createUser(user);
 
-        user = new User();
-        user.setId(createdUser.getId());
-        user.setLogin("newLogin");
-        User updatedUser = userController.partialUpdate(user);
+        Map<String, Object> updates = Map.of("login", "newLogin");
+        User updatedUser = userController.partialUpdate(createdUser.getId(), updates);
 
         assertNotNull(updatedUser);
         assertEquals(updatedUser.getLogin(), "newLogin");
@@ -218,10 +223,8 @@ public class UserControllerTest {
         user.setBirthday(LocalDate.of(2000, 1, 1));
         User createdUser = userController.createUser(user);
 
-        user = new User();
-        user.setId(createdUser.getId());
-        user.setEmail("my3mail@mail.com");
-        User updatedUser = userController.partialUpdate(user);
+        Map<String, Object> updates = Map.of("email", "my3mail@mail.com");
+        User updatedUser = userController.partialUpdate(createdUser.getId(), updates);
 
         assertNotNull(updatedUser);
         assertEquals(updatedUser.getLogin(), createdUser.getLogin());
@@ -239,10 +242,8 @@ public class UserControllerTest {
         user.setBirthday(LocalDate.of(2000, 1, 1));
         User createdUser = userController.createUser(user);
 
-        user = new User();
-        user.setId(createdUser.getId());
-        user.setBirthday(LocalDate.of(2012, 12, 12));
-        User updatedUser = userController.partialUpdate(user);
+        Map<String, Object> updates = Map.of("birthday", "2012-12-12");
+        User updatedUser = userController.partialUpdate(createdUser.getId(), updates);
 
         assertNotNull(updatedUser);
         assertEquals(updatedUser.getLogin(), createdUser.getLogin());
@@ -260,10 +261,8 @@ public class UserControllerTest {
         user.setBirthday(LocalDate.of(2000, 1, 1));
         User createdUser = userController.createUser(user);
 
-        user = new User();
-        user.setId(createdUser.getId());
-        user.setName("newName");
-        User updatedUser = userController.partialUpdate(user);
+        Map<String, Object> updates = Map.of("name", "newName");
+        User updatedUser = userController.partialUpdate(createdUser.getId(), updates);
 
         assertNotNull(updatedUser);
         assertEquals(updatedUser.getLogin(), createdUser.getLogin());
@@ -288,10 +287,9 @@ public class UserControllerTest {
         user.setBirthday(LocalDate.of(2000, 1, 1));
         User createdUser = userController.createUser(user);
 
-        user = new User();
-        user.setId(createdUser.getId());
-        user.setEmail("my1email@mail.com");
-        assertThrows(ValidationException.class, () -> userController.partialUpdate(user));
+        Map<String, Object> updates = Map.of("email", "my1email@mail.com");
+
+        assertThrows(DuplicateException.class, () -> userController.partialUpdate(createdUser.getId(), updates));
     }
 
     @Test
@@ -303,11 +301,9 @@ public class UserControllerTest {
         user.setBirthday(LocalDate.of(2000, 1, 1));
         userController.createUser(user);
 
-        user = new User();
-        user.setId(0L);
-        user.setName("secondName");
+        Map<String, Object> updates = Map.of("name", "secondName");
 
-        assertThrows(NotFoundException.class, () -> userController.partialUpdate(user));
+        assertThrows(NotFoundException.class, () -> userController.partialUpdate(0L, updates));
     }
 
     @Test
@@ -319,10 +315,8 @@ public class UserControllerTest {
         user.setBirthday(LocalDate.of(2000, 1, 1));
         userController.createUser(user);
 
-        user = new User();
-        user.setId(10L);
-        user.setName("secondName");
+        Map<String, Object> updates = Map.of("name", "secondName");
 
-        assertThrows(NotFoundException.class, () -> userController.partialUpdate(user));
+        assertThrows(NotFoundException.class, () -> userController.partialUpdate(10L, updates));
     }
 }

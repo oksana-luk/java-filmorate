@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.model;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 
@@ -22,8 +23,21 @@ public class User {
     protected String login;
 
     @NotNull(groups = CreateInfo.class)
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Past(groups = {CreateInfo.class, UpdateInfo.class}, message = "Birthday cannot be a future date")
     protected LocalDate birthday;
 
     protected String name;
+
+    public User() {
+
+    }
+
+    public User(User user) {
+        this.id = user.getId();
+        this.email = user.getEmail();
+        this.login = user.getLogin();
+        this.birthday = user.getBirthday();
+        this.name = user.getName();
+    }
 }

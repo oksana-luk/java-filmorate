@@ -83,7 +83,7 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public Collection<Film> getPopularFilms(@RequestParam(defaultValue = "10") Integer count){
+    public Collection<Film> getPopularFilms(@RequestParam(defaultValue = "10") Integer count) {
         count = (count == null) ? 10 : count;
         log.debug("GET/films/popular: start of finding {} popular movie", count);
         Collection<Film> films = filmService.getPopularFilms(count);

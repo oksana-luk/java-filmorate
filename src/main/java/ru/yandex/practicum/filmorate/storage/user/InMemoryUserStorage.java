@@ -21,6 +21,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User addUser(User user) {
+        user.setId(getNextId());
         users.put(user.getId(), user);
         usersEmail.add(user.getEmail());
         return user;
@@ -39,11 +40,10 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User deleteUserById(Long id) {
-        return users.remove(id);
+    public boolean deleteUserById(Long id) {
+        return users.remove(id) != null;
     }
 
-    @Override
     public Long getNextId() {
         long currentMaxId = users.keySet()
                 .stream()
@@ -54,8 +54,8 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public boolean containsEmail(User user) {
-        return usersEmail.contains(user.getEmail());
+    public boolean containsEmail(String email) {
+        return usersEmail.contains(email);
     }
 
     @Override
@@ -73,9 +73,8 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public void deleteFriend(Long id, Long friendId) {
-        deleteFriendFrom(id, friendId);
-        deleteFriendFrom(friendId, id);
+    public boolean deleteFriend(Long id, Long friendId) {
+        return deleteFriendFrom(id, friendId) || deleteFriendFrom(friendId, id);
     }
 
     @Override
@@ -110,9 +109,11 @@ public class InMemoryUserStorage implements UserStorage {
         }
     }
 
-    private void deleteFriendFrom(Long id, Long friendId) {
+    private boolean deleteFriendFrom(Long id, Long friendId) {
         if (friends.containsKey(id)) {
-            friends.get(id).remove(friendId);
+           return friends.get(id).remove(friendId);
+        } else {
+            return false;
         }
     }
 }

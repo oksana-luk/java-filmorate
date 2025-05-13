@@ -1,13 +1,14 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.CreateInfo;
+import ru.yandex.practicum.filmorate.dto.film.FilmDto;
+import ru.yandex.practicum.filmorate.dto.film.NewFilmRequest;
+import ru.yandex.practicum.filmorate.dto.film.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.UpdateInfo;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
@@ -21,48 +22,40 @@ public class FilmController {
     private final FilmService filmService;
 
     @GetMapping
-    public Collection<Film> findAll() {
+    public Collection<FilmDto> findAll() {
         log.debug("GET /films: the collection of movies has been returned");
         return filmService.findAll();
     }
 
     @GetMapping("/{id}")
-    public Film findFilmById(@PathVariable Long id) {
+    public FilmDto findFilmById(@PathVariable Long id) {
         log.debug("GET/films/id: start of finding of movie {}", id);
-        Film film = filmService.findFilmById(id);
-        log.debug("GET/films/id: the process was completed successfully. A new movie {} with id {} has been found", film.getName(), film.getId());
-        return film;
+        FilmDto filmDto = filmService.findFilmById(id);
+        log.debug("GET/films/id: the process was completed successfully. A new movie {} with id {} has been found", filmDto.getName(), filmDto.getId());
+        return filmDto;
     }
 
     @PostMapping
-    public Film createFilm(@Validated(CreateInfo.class) @RequestBody Film film) {
-        log.debug("POST/films: start of creating of new movie {}", film.getName());
-        filmService.createFilm(film);
-        log.debug("POST/films: the process was completed successfully. A new movie {} with id {} has been created", film.getName(), film.getId());
-        return film;
+    public FilmDto createFilm(@Valid @RequestBody NewFilmRequest newFilmRequest) {
+        log.debug("POST/films: start of creating of new movie {}", newFilmRequest.getName());
+        FilmDto filmDto = filmService.createFilm(newFilmRequest);
+        log.debug("POST/films: the process was completed successfully. A new movie {} with id {} has been created", filmDto.getName(), filmDto.getId());
+        return filmDto;
     }
 
     @PutMapping
-    public Film updateFilm(@Validated({UpdateInfo.class, CreateInfo.class}) @RequestBody Film film) {
-        log.debug("PUT/films: start of updating of movie {}", film.getName());
-        filmService.updateFilm(film);
-        log.debug("PUT/films: the process was completed successfully. A movie {} with id {} has been updated", film.getName(), film.getId());
-        return film;
-    }
-
-    @PatchMapping("/{id}")
-    public Film partialUpdate(@Validated(UpdateInfo.class) @PathVariable Long id, @RequestBody Map<String, Object> updates) {
-        log.debug("PATCH/films/id: start of partial updating of movie with id {}", id);
-        Film updatedFilm = filmService.partialUpdate(id, updates);
-        log.debug("PATCH/films/id: the process was completed successfully. A movie {} with id {} has been updated", updatedFilm.getName(), updatedFilm.getId());
-        return updatedFilm;
+    public FilmDto updateFilm(@Valid @RequestBody UpdateFilmRequest updateFilmRequest) {
+        log.debug("PUT/films: start of updating of movie {}", updateFilmRequest.getName());
+        FilmDto filmDto = filmService.updateFilm(updateFilmRequest);
+        log.debug("PUT/films: the process was completed successfully. A movie {} with id {} has been updated", updateFilmRequest.getName(), updateFilmRequest.getId());
+        return filmDto;
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> deleteFilm(@PathVariable Long id) {
-        log.debug("DELETE/films/id: start of deleting of movie with id {}", id);
-        Film film = filmService.deleteFilm(id);
-        log.debug("DELETE/films/id: the process was completed successfully. A movie {} with id {} has been deleted", film.getName(), id);
+        log.debug("DELETE/films/id: start of deleting of film with id {}", id);
+        filmService.deleteFilm(id);
+        log.debug("DELETE/films/id: the process was completed successfully. A film with id {} has been deleted", id);
         return ResponseEntity.ok(Map.of("result",String.format("Film with id %s has been deleted successfully.", id)));
     }
 

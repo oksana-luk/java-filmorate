@@ -15,17 +15,15 @@ public interface UserStorage {
 
     User updateUser(User user);
 
-    User deleteUserById(Long id);
+    boolean deleteUserById(Long id);
 
-    Long getNextId();
-
-    boolean containsEmail(User user);
+    boolean containsEmail(String email);
 
     boolean containsFriend(Long id, Long friendId);
 
     void addFriend(Long id, Long friendId);
 
-    void deleteFriend(Long id, Long friendId);
+    boolean deleteFriend(Long id, Long friendId);
 
     Collection<User> getFriends(Long id);
 

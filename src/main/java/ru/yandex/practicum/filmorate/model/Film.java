@@ -1,36 +1,26 @@
 package ru.yandex.practicum.filmorate.model;
 
-import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Film {
-    @NotNull(groups = UpdateInfo.class, message = "Id of user should not be empty")
     protected Long id;
-
-    @NotBlank(groups = CreateInfo.class, message = "Movie title should not be empty")
     @EqualsAndHashCode.Include
     protected String name;
-
-    @NotNull(groups = CreateInfo.class)
-    @Size(groups = {UpdateInfo.class, CreateInfo.class}, min = 0, max = 200, message = "Description should be not longer 200 letters.")
     protected String description;
-
-    @NotNull(groups = CreateInfo.class)
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @EqualsAndHashCode.Include
     protected LocalDate releaseDate;
-
-    @NotNull(groups = CreateInfo.class)
     protected Integer duration;
+    protected Mpa mpa;
+    protected List<Genre> genres = new ArrayList<>();
 
     public Film() {
-
     }
 
     public Film(Film film) {
@@ -39,5 +29,11 @@ public class Film {
         this.description = film.getDescription();
         this.releaseDate = film.getReleaseDate();
         this.duration = film.getDuration();
+        this.genres = film.getGenres();
+        this.mpa = film.getMpa();
+    }
+
+    public void addGenre(int genreId, String name) {
+        genres.add(new Genre(genreId, name));
     }
 }

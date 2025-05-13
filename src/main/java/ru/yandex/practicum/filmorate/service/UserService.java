@@ -1,81 +1,71 @@
 package ru.yandex.practicum.filmorate.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ReflectionUtils;
+import ru.yandex.practicum.filmorate.dto.user.BaseUserDto;
+import ru.yandex.practicum.filmorate.dto.user.NewUserRequest;
+import ru.yandex.practicum.filmorate.dto.user.UpdateUserRequest;
+import ru.yandex.practicum.filmorate.dto.user.UserDto;
 import ru.yandex.practicum.filmorate.exception.DuplicateException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.lang.reflect.Field;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class UserService {
     private final UserStorage userStorage;
 
-    public Collection<User> findAll() {
-        return userStorage.getUsers();
+    @Autowired
+    public UserService(@Qualifier("userRepository") UserStorage userStorage) {
+        this.userStorage = userStorage;
     }
 
-    public User findUserById(Long id) {
-        return validateNotFound(id);
+    public Collection<UserDto> findAll() {
+        return userStorage.getUsers()
+                .stream()
+                .map(UserMapper::mapToUserDto)
+                .collect(Collectors.toList());
     }
 
-    public User createUser(User user) {
-        validateEmail(user);
-        if (user.getLogin().contains(" ")) {
+    public UserDto findUserById(Long id) {
+        User user = validateNotFound(id);
+        return UserMapper.mapToUserDto(user);
+    }
+
+    public UserDto createUser(NewUserRequest newUserRequest) {
+        validateEmail(newUserRequest);
+        if (newUserRequest.getLogin().contains(" ")) {
             setLogWarn("Login should not contain space");
-            throw new ValidationException(user.getLogin(), "Login should not contain space");
+            throw new ValidationException(newUserRequest.getLogin(), "Login should not contain space");
         }
-        user.setId(userStorage.getNextId());
-        if (Objects.isNull(user.getName()) || user.getName().isBlank()) {
-            user.setName(user.getLogin());
+        if (Objects.isNull(newUserRequest.getName()) || newUserRequest.getName().isBlank()) {
+            newUserRequest.setName(newUserRequest.getLogin());
         }
-        return userStorage.addUser(user);
+        User user = UserMapper.mapToUser(newUserRequest);
+        user = userStorage.addUser(user);
+        return UserMapper.mapToUserDto(validateNotFound(user.getId()));
     }
 
-    public User updateUser(User user) {
-        User currentUser = validateNotFound(user.getId());
-        validateLogin(user);
-        if (!currentUser.getEmail().equals(user.getEmail())) {
-            validateEmail(user);
+    public UserDto updateUser(UpdateUserRequest updateUserRequest) {
+        User user = validateNotFound(updateUserRequest.getId());
+        validateLogin(updateUserRequest);
+        if (!user.getEmail().equals(updateUserRequest.getEmail())) {
+            validateEmail(updateUserRequest);
         }
-        if (Objects.isNull(user.getName()) || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
-        return userStorage.addUser(user);
+        user = UserMapper.updateUserFields(user, updateUserRequest);
+        user = userStorage.updateUser(user);
+        return UserMapper.mapToUserDto(user);
     }
 
-    public User partialUpdate(Long id, Map<String, Object> updates) {
-        User currentUser = validateNotFound(id);
-        updates.forEach((key, value) -> {
-            Field field = ReflectionUtils.findField(User.class, key);
-            if (field != null && !field.getName().equals("id")) {
-                field.setAccessible(true);
-                if (field.getName().equals("birthday")) {
-                    LocalDate releaseDate = LocalDate.parse(value.toString(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                    ReflectionUtils.setField(field, currentUser, releaseDate);
-                } else if (field.getName().equals("email")) {
-                    ReflectionUtils.setField(field, currentUser, value);
-                    validateEmail(currentUser);
-                } else {
-                    ReflectionUtils.setField(field, currentUser, value);
-                }
-            }
-        });
-        validateLogin(currentUser);
-        return userStorage.updateUser(currentUser);
-    }
-
-    public User deleteUserById(Long id) {
+    public boolean deleteUserById(Long id) {
         validateNotFound(id);
         return userStorage.deleteUserById(id);
     }
@@ -87,21 +77,27 @@ public class UserService {
         userStorage.addFriend(id, friendId);
     }
 
-    public void deleteFriend(Long id, Long friendId) {
+    public boolean deleteFriend(Long id, Long friendId) {
         validateNotFound(id);
         validateNotFound(friendId);
-        userStorage.deleteFriend(id, friendId);
+        return userStorage.deleteFriend(id, friendId);
     }
 
-    public Collection<User> getFriends(Long id) {
+    public Collection<UserDto> getFriends(Long id) {
         validateNotFound(id);
-        return userStorage.getFriends(id);
+        return userStorage.getFriends(id)
+                .stream()
+                .map(UserMapper::mapToUserDto)
+                .collect(Collectors.toList());
     }
 
-    public Collection<User> getCommonFriends(Long id, Long otherId) {
+    public Collection<UserDto> getCommonFriends(Long id, Long otherId) {
         validateNotFound(id);
         validateNotFound(otherId);
-        return userStorage.getCommonFriends(id, otherId);
+        return userStorage.getCommonFriends(id, otherId)
+                .stream()
+                .map(UserMapper::mapToUserDto)
+                .collect(Collectors.toList());
     }
 
     private User validateNotFound(Long id) {
@@ -115,15 +111,15 @@ public class UserService {
         }
     }
 
-    private void validateEmail(User user) {
-        if (userStorage.containsEmail(user)) {
+    private void validateEmail(BaseUserDto user) {
+        if (userStorage.containsEmail(user.getEmail())) {
             String message = String.format("Email %s is already taken", user.getEmail());
             setLogWarn(message);
             throw new DuplicateException(message);
         }
     }
 
-    private void validateLogin(User user) {
+    private void validateLogin(BaseUserDto user) {
         if (user.getLogin() != null && user.getLogin().isBlank()) {
             setLogWarn("Login should not be empty");
             throw new ValidationException(user.getLogin(), "Login should not be empty");

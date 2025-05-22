@@ -66,6 +66,19 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                                                             LEFT JOIN film_genres AS fg ON c.film_id = fg.film_id
                                                             LEFT JOIN genres AS g ON fg.genre_id = g.genre_id
                                                             LEFT JOIN ratings AS r ON films.rating_id = r.rating_id;""";
+    private static final String FIND_RECOMMENDATIONS_QUERY = """
+                                                            SELECT films.*,
+                                                            fg.genre_id,
+                                                            g.name AS genre_name,
+                                                            r.name AS rating_name FROM likes AS likes
+                                                            LEFT JOIN films AS films ON likes.film_id = films.film_id
+                                                            LEFT JOIN film_genres AS fg ON films.film_id = fg.film_id
+                                                            LEFT JOIN genres AS g ON fg.genre_id = g.genre_id
+                                                            LEFT JOIN ratings AS r ON films.rating_id = r.rating_id
+                                                            WHERE likes.user_id = ?
+                                                            AND NOT likes.film_id IN (SELECT l.FILM_ID
+                                                                                    FROM LIKES l
+                                                                                    WHERE l.USER_ID = ?)""";
 
     @Autowired
     public FilmRepository(JdbcTemplate jdbc, FilmResultSetExtractor resultSetExtractor,
@@ -140,6 +153,12 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     @Override
     public Collection<Film> getPopularFilms(Integer count) {
         return extractMany(FIND_POPULAR_FILMS_QUERY, listResultSetExtractor, count);
+    }
+
+    @Override
+    public Collection<Film> getRecommendations(Long userId, Long otherUserId) {
+        return extractMany(FIND_RECOMMENDATIONS_QUERY, listResultSetExtractor, otherUserId, userId);
+
     }
 }
 

@@ -52,20 +52,18 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     private static final String INSERT_LIKE_QUERY = "INSERT INTO likes (film_id, user_id) VALUES (?, ?)";
     private static final String DELETE_LIKE_QUERY = "DELETE likes WHERE film_id = ? AND user_id = ?";
     private static final String FIND_POPULAR_FILMS_QUERY = """
-                                                            SELECT films.*,
-                                                            fg.genre_id,
-                                                            g.name AS genre_name,
-                                                            r.name AS rating_name
-                                                            FROM (	SELECT likes.film_id,
-                                                                            COUNT(likes.like_id) AS count_likes
-                                                                    FROM likes
-                                                                    GROUP BY film_id
-                                                                    ORDER BY COUNT(likes.like_id) DESC
-                                                                    LIMIT ?) AS c
-                                                            LEFT JOIN films AS films ON c.film_id = films.film_id
-                                                            LEFT JOIN film_genres AS fg ON c.film_id = fg.film_id
-                                                            LEFT JOIN genres AS g ON fg.genre_id = g.genre_id
-                                                            LEFT JOIN ratings AS r ON films.rating_id = r.rating_id;""";
+                                                           SELECT films.*, fg.genre_id, g.name AS genre_name, r.name AS rating_name
+                                                           FROM films
+                                                           LEFT JOIN (
+                                                           SELECT film_id, COUNT(like_id) AS count_likes
+                                                           FROM likes
+                                                           GROUP BY film_id
+                                                                    ) AS c ON films.film_id = c.film_id
+                                                                    LEFT JOIN film_genres AS fg ON films.film_id = fg.film_id
+                                                                    LEFT JOIN genres AS g ON fg.genre_id = g.genre_id
+                                                                    LEFT JOIN ratings AS r ON films.rating_id = r.rating_id
+                                                                    ORDER BY c.count_likes DESC
+                                                                    LIMIT ?""";
 
     @Autowired
     public FilmRepository(JdbcTemplate jdbc, FilmResultSetExtractor resultSetExtractor,
@@ -124,7 +122,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
 
     @Override
     public boolean deleteFilmById(Long id) {
-        return delete(DELETE_FILM_QUERY, id) && delete(DELETE_FILM_GENRE_QUERY, id);
+        return  delete(DELETE_FILM_GENRE_QUERY, id) && delete(DELETE_FILM_QUERY, id);
     }
 
     @Override
@@ -142,4 +140,3 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
         return extractMany(FIND_POPULAR_FILMS_QUERY, listResultSetExtractor, count);
     }
 }
-

@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Optional;
 
 public interface DirectorStorage {
+
     Collection<Director> getDirectors();
 
     Optional<Director> findDirectorById(Long id);

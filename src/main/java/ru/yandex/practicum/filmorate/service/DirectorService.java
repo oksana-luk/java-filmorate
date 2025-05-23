@@ -7,9 +7,14 @@ import ru.yandex.practicum.filmorate.dto.director.UpdateDirectorRequest;
 import java.util.Collection;
 
 public interface DirectorService {
+
     Collection<DirectorDto> findAll();
+
     DirectorDto findDirectorById(Long id);
+
     DirectorDto createDirector(NewDirectorRequest newDirectorRequest);
+
     DirectorDto updateDirector(UpdateDirectorRequest updateDirectorRequest);
+
     boolean deleteDirector(Long id);
 }

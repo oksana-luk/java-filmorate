@@ -66,6 +66,27 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                                                             LEFT JOIN film_genres AS fg ON c.film_id = fg.film_id
                                                             LEFT JOIN genres AS g ON fg.genre_id = g.genre_id
                                                             LEFT JOIN ratings AS r ON films.rating_id = r.rating_id;""";
+    private static final String FIND_COMMON_FILMS_QUERY = """
+                                                            SELECT films.*,
+                                                                fg.genre_id,
+                                                                g.name AS genre_name,
+                                                                r.name AS rating_name
+                                                            FROM films
+                                                                LEFT JOIN film_genres fg ON films.film_id = fg.film_id
+                                                                LEFT JOIN genres AS g ON fg.genre_id = g.genre_id
+                                                                LEFT JOIN ratings AS r ON films.rating_id = r.rating_id
+                                                            WHERE films.film_id IN (
+                                                                SELECT film_id
+                                                                FROM likes l
+                                                                WHERE user_id IN (?, ?)
+                                                                GROUP BY film_id
+                                                                HAVING COUNT(DISTINCT user_id) = 2
+                                                                ORDER BY (
+                                                                    SELECT COUNT(*)
+                                                                    FROM likes l2
+                                                                    WHERE l2.film_id = l.film_id
+                                                                    ) DESC
+                                                                )""";
 
     @Autowired
     public FilmRepository(JdbcTemplate jdbc, FilmResultSetExtractor resultSetExtractor,
@@ -140,6 +161,11 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     @Override
     public Collection<Film> getPopularFilms(Integer count) {
         return extractMany(FIND_POPULAR_FILMS_QUERY, listResultSetExtractor, count);
+    }
+
+    @Override
+    public Collection<Film> getCommonFilmsFriends(Long userId, Long friendId) {
+        return extractMany(FIND_COMMON_FILMS_QUERY, listResultSetExtractor, userId, friendId);
     }
 }
 

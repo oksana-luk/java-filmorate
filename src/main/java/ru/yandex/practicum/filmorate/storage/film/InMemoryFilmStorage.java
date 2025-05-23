@@ -82,6 +82,11 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .map(films::get)
                 .toList();
     }
+
+    @Override
+    public Collection<Film> getCommonFilmsFriends(Long userId, Long friendId) {
+        return null;
+    }
 }
 
 

@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class DirectorDto implements BaseDirectorDto{
+public class DirectorDto implements BaseDirectorDto {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
 

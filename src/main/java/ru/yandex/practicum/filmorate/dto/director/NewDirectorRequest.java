@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class NewDirectorRequest implements BaseDirectorDto{
+public class NewDirectorRequest implements BaseDirectorDto {
 
     @NotNull(message = "Director name should not be empty")
     @NotEmpty(message = "Director name should not be empty")

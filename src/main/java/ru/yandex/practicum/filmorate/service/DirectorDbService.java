@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class DirectorDbService implements DirectorService{
+public class DirectorDbService implements DirectorService {
     private final DirectorStorage directorStorage;
 
     @Autowired

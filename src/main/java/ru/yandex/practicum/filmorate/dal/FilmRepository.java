@@ -120,6 +120,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                                                         LEFT JOIN ratings AS r ON films.rating_id = r.rating_id
                                                         WHERE df.director_id = ?
                                                         ORDER BY YEAR(films.release_date) ASC;""";
+
     @Autowired
     public FilmRepository(JdbcTemplate jdbc, FilmResultSetExtractor resultSetExtractor,
                           FilmListResultSetExtractor listResultSetExtractor) {

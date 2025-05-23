@@ -19,6 +19,7 @@ public class Film {
     protected Integer duration;
     protected Mpa mpa;
     protected List<Genre> genres = new ArrayList<>();
+    protected List<Director> directors = new ArrayList<>();
 
     public Film() {
     }
@@ -31,9 +32,13 @@ public class Film {
         this.duration = film.getDuration();
         this.genres = film.getGenres();
         this.mpa = film.getMpa();
+        this.directors = film.getDirectors();
     }
 
     public void addGenre(int genreId, String name) {
         genres.add(new Genre(genreId, name));
+    }
+    public void addDirector(long directorId, String name) {
+        directors.add(new Director(directorId, name));
     }
 }

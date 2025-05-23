@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -81,6 +82,16 @@ public class FilmController {
         log.debug("GET/films/popular: start of finding {} popular movie", count);
         Collection<Film> films = filmService.getPopularFilms(count);
         log.debug("GET/films/process: the process was completed successfully. The collection of {} popular movies has been returned", count);
+        return films;
+    }
+
+    @GetMapping("/director/{directorId}")
+    public Collection<Film> getDirectorFilms(
+            @Valid @RequestParam(required = false) @Pattern(regexp = "year|likes", message = "Invalid sortBy value") String sortBy,
+            @PathVariable Long directorId) {
+        log.debug("GET/films/director/{}: start looking for director {} movies sorted by {}", directorId, directorId,sortBy);
+        Collection<Film> films = filmService.getDirectorFilms(sortBy, directorId);
+        log.debug("GET/films/director/{}: films of director {} sorted by {} found", directorId, directorId,sortBy);
         return films;
     }
 }

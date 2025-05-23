@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
@@ -32,4 +33,6 @@ public class NewFilmRequest implements BaseFilmDto {
     private Mpa mpa;
 
     private List<Genre> genres = new ArrayList<>();
+
+    private List<Director> directors = new ArrayList<>();
 }

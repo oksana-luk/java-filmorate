@@ -15,3 +15,21 @@ KEY (rating_id) VALUES
 (4, 'R'),
 (5, 'NC-17');
 
+INSERT INTO directors (name) SELECT 'Истомин Олег'
+WHERE NOT EXISTS (SELECT name FROM directors WHERE name = 'Истомин Олег');
+
+INSERT INTO directors (name) SELECT 'Джон Траволта'
+WHERE NOT EXISTS (SELECT name FROM directors WHERE name = 'Джон Траволта');
+
+INSERT INTO directors (name) SELECT 'Лев Толстой'
+WHERE NOT EXISTS (SELECT name FROM directors WHERE name = 'Лев Толстой');
+
+INSERT INTO directors (name) SELECT 'Сергей Лукьяненко'
+WHERE NOT EXISTS (SELECT name FROM directors WHERE name = 'Сергей Лукьяненко');
+
+INSERT INTO directors (name) SELECT 'Алексей Иванов'
+WHERE NOT EXISTS (SELECT name FROM directors WHERE name = 'Алексей Иванов');
+
+INSERT INTO directors (name) SELECT 'Антон Чехов'
+WHERE NOT EXISTS (SELECT name FROM directors WHERE name = 'Антон Чехов');
+

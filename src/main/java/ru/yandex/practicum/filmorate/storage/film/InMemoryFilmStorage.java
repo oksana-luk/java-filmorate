@@ -82,6 +82,11 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .map(films::get)
                 .toList();
     }
+
+    @Override
+    public Collection<Film> getDirectorFilms(String sortBy, Long id) {
+        return null;
+    }
 }
 
 

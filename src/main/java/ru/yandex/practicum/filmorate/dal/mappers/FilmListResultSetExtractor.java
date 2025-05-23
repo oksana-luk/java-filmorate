@@ -36,6 +36,9 @@ public class FilmListResultSetExtractor implements ResultSetExtractor<List<Film>
             if (rs.getInt("genre_id") != 0) {
                 film.addGenre(rs.getInt("genre_id"), rs.getString("genre_name"));
             }
+            if (rs.getLong("director_id") != 0) {
+                film.addDirector(rs.getLong("director_id"), rs.getString("director_name"));
+            }
         }
         return idToFilm.values().stream().toList();
     }

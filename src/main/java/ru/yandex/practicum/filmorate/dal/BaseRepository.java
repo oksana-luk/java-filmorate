@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.exception.InternalServerException;
 
 import java.sql.PreparedStatement;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -67,4 +68,5 @@ public class BaseRepository<T> {
         int rowDeleted = jdbc.update(query, params);
         return rowDeleted > 0;
     }
+
 }

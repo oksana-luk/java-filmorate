@@ -186,5 +186,8 @@ public class FilmService {
     private void setLogValidationSuccess(BaseFilmDto film) {
         log.debug("The validation process for movie {} was completed successfully.", film.getName());
     }
-}
 
+    public Collection<Film> getCommonFilmsFriends (Long userId, Long friendId) {
+        return filmStorage.getCommonFilmsFriends(userId, friendId);
+    }
+}

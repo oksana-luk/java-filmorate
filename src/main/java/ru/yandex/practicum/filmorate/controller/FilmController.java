@@ -85,9 +85,9 @@ public class FilmController {
     }
 
     @GetMapping("/common")
-    public Collection<Film> getCommonFilmsFriends(@RequestParam Long userId, @RequestParam Long friendId) {
+    public Collection<FilmDto> getFriendsCommonFilms(@RequestParam Long userId, @RequestParam Long friendId) {
         log.debug("GET/films/common: start of finding {} common movie");
-        Collection<Film> films = filmService.getCommonFilmsFriends(userId, friendId);
+        Collection<FilmDto> films = filmService.getFriendsCommonFilms(userId, friendId);
         log.debug("GET/films/process: the process was completed successfully. The collection of {} common movies has been returned");
         return films;
     }

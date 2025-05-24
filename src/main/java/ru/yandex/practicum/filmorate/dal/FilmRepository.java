@@ -164,7 +164,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     }
 
     @Override
-    public Collection<Film> getCommonFilmsFriends(Long userId, Long friendId) {
+    public Collection<Film> getFriendsCommonFilms(Long userId, Long friendId) {
         return extractMany(FIND_COMMON_FILMS_QUERY, listResultSetExtractor, userId, friendId);
     }
 }

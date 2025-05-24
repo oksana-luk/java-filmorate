@@ -187,8 +187,12 @@ public class FilmService {
         log.debug("The validation process for movie {} was completed successfully.", film.getName());
     }
 
-    public Collection<Film> getCommonFilmsFriends(Long userId, Long friendId) {
-        return filmStorage.getCommonFilmsFriends(userId, friendId);
+    public Collection<FilmDto> getFriendsCommonFilms(Long userId, Long friendId) {
+        validateNotFoundUser(userId);
+        validateNotFoundUser(friendId);
+        return filmStorage.getFriendsCommonFilms(userId, friendId)
+                .stream()
+                .map(FilmMapper::mapToFilmDto)
+                .collect(Collectors.toList());
     }
 }
-

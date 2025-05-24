@@ -106,7 +106,7 @@ public class ReviewDbService implements ReviewService {
     }
 
     private Integer validateRating(Long id, Long userId) {
-        return reviewStorage.findRating(id, userId).orElseThrow( () -> {
+        return reviewStorage.findRating(id, userId).orElseThrow(() -> {
             NotFoundException e = new NotFoundException("No rating with " + id + " not found");
             log.error(e.getMessage());
             return e;
@@ -114,7 +114,7 @@ public class ReviewDbService implements ReviewService {
     }
 
     private void validateFilmId(Long id) {
-        filmStorage.findFilmById(id).orElseThrow( () -> {
+        filmStorage.findFilmById(id).orElseThrow(() -> {
                 NotFoundException e = new NotFoundException("Film " + id + " not found");
                 log.error(e.getMessage());
                 return e;
@@ -122,7 +122,7 @@ public class ReviewDbService implements ReviewService {
     }
 
     private void validateUserId(Long id) {
-        userStorage.findUserById(id).orElseThrow( () -> {
+        userStorage.findUserById(id).orElseThrow(() -> {
             NotFoundException e = new NotFoundException("User " + id + " not found");
             log.error(e.getMessage());
             return e;
@@ -130,7 +130,7 @@ public class ReviewDbService implements ReviewService {
     }
 
     private Review validateNotFound(Long id) {
-        return reviewStorage.findReviewById(id).orElseThrow( () -> {
+        return reviewStorage.findReviewById(id).orElseThrow(() -> {
             NotFoundException e = new NotFoundException("Review " + id + " not found");
             log.error(e.getMessage());
             return e;

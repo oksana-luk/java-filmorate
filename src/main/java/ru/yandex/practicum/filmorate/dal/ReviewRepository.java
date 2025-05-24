@@ -46,7 +46,7 @@ public class ReviewRepository extends BaseRepository<Review> implements ReviewSt
             """;
 
     private static final String FIND_RATING = """
-            SELECT rating_value FROM reviews_ratings 
+            SELECT rating_value FROM reviews_ratings
             WHERE review_id = ? AND user_id = ?
             """;
 

@@ -158,7 +158,6 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     @Override
     public Collection<Film> getRecommendations(Long userId, Long otherUserId) {
         return extractMany(FIND_RECOMMENDATIONS_QUERY, listResultSetExtractor, otherUserId, userId);
-
     }
 }
 

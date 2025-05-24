@@ -33,3 +33,4 @@ WHERE NOT EXISTS (SELECT name FROM directors WHERE name = 'Алексей Ива
 INSERT INTO directors (name) SELECT 'Антон Чехов'
 WHERE NOT EXISTS (SELECT name FROM directors WHERE name = 'Антон Чехов');
 
+

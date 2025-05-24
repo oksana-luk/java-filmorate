@@ -14,8 +14,5 @@ public class Director {
 
     private Long id;
 
-    @NotNull
-    @NotBlank
-    @NotEmpty
     private String name;
 }

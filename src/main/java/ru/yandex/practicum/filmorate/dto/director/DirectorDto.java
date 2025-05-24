@@ -11,8 +11,6 @@ public class DirectorDto implements BaseDirectorDto {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
 
-    @NotNull
     @NotBlank
-    @NotEmpty
     private String name;
 }

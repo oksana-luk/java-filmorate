@@ -90,20 +90,21 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                                                             g.name AS genre_name,
                                                             df.director_id,
                                                             d.name AS director_name,
-                                                            r.name AS rating_name
-                                                            FROM (	SELECT likes.film_id,
-                                                                            COUNT(likes.like_id) AS count_likes
-                                                                    FROM likes
-                                                                    GROUP BY film_id
-                                                                    ORDER BY COUNT(likes.like_id) DESC
-                                                                    ) AS c
-                                                            LEFT JOIN films AS films ON c.film_id = films.film_id
-                                                            LEFT JOIN film_genres AS fg ON c.film_id = fg.film_id
+                                                            r.name AS rating_name,
+                                                            COALESCE(c.count_likes, 0) AS likes_quantity
+                                                            FROM films AS films
+                                                            LEFT JOIN film_genres AS fg ON films.film_id = fg.film_id
                                                             LEFT JOIN genres AS g ON fg.genre_id = g.genre_id
                                                             LEFT JOIN director_film df ON films.film_id = df.film_id
                                                             LEFT JOIN directors AS d ON df.director_id = d.id
                                                             LEFT JOIN ratings AS r ON films.rating_id = r.rating_id
-                                                            WHERE df.director_id = ?;""";
+                                                            LEFT JOIN (	SELECT likes.film_id,
+                                                                            COUNT(likes.like_id) AS count_likes
+                                                                    FROM likes
+                                                                    GROUP BY film_id                                   
+                                                                    ) AS c ON films.film_id = c.film_id
+                                                            WHERE df.director_id = ?
+                                                            ORDER BY likes_quantity DESC;""";
 
     private static final String FIND_DIRECTOR_FILMS_BY_YEAR = """
                                                         SELECT films.*,
@@ -156,7 +157,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
         }
         for (Director director: film.getDirectors()) {
             try {
-                insert(INSERT_DIRECTOR_FILM_QUERY, director.getId(), id);
+                jdbc.update(INSERT_DIRECTOR_FILM_QUERY, director.getId(), film.getId());
             } catch (DuplicateKeyException ignored) {
             }
         }

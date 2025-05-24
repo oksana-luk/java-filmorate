@@ -115,9 +115,12 @@ public class FilmService {
         return filmStorage.getPopularFilms(count);
     }
 
-    public Collection<Film> getDirectorFilms(String sortBy, Long directorId) {
+    public Collection<FilmDto> getDirectorFilms(String sortBy, Long directorId) {
         validateDirector(directorId);
-        return filmStorage.getDirectorFilms(sortBy, directorId);
+        return filmStorage.getDirectorFilms(sortBy, directorId)
+                .stream()
+                .map(FilmMapper::mapToFilmDto)
+                .collect(Collectors.toList());
     }
 
     private void validateDirector(Long id) {

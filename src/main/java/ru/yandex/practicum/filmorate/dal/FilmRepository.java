@@ -232,7 +232,8 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     public Collection<Film> getRecommendations(Long userId, Long otherUserId) {
         return extractMany(FIND_RECOMMENDATIONS_QUERY, listResultSetExtractor, otherUserId, userId);
     }
-  
+
+    @Override
     public Collection<Film> getDirectorFilms(String sortBy, Long directorId) {
         if (Objects.equals(sortBy, "likes")) {
             return extractMany(FIND_DIRECTOR_FILMS_BY_LIKES, listResultSetExtractor, directorId);

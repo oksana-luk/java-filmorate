@@ -122,7 +122,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
 
     @Override
     public boolean deleteFilmById(Long id) {
-        return  delete(DELETE_FILM_GENRE_QUERY, id) && delete(DELETE_FILM_QUERY, id);
+        return delete(DELETE_FILM_QUERY, id);
     }
 
     @Override

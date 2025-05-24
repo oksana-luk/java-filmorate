@@ -70,19 +70,24 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                                                             g.name AS genre_name,
                                                             df.director_id,
                                                             d.name AS director_name,
-                                                            r.name AS rating_name
-                                                            FROM (	SELECT likes.film_id,
-                                                                            COUNT(likes.like_id) AS count_likes
-                                                                    FROM likes
-                                                                    GROUP BY film_id
-                                                                    ORDER BY COUNT(likes.like_id) DESC
-                                                                    LIMIT ?) AS c
-                                                            LEFT JOIN films AS films ON c.film_id = films.film_id
-                                                            LEFT JOIN film_genres AS fg ON c.film_id = fg.film_id
-                                                            LEFT JOIN genres AS g ON fg.genre_id = g.genre_id
-                                                            LEFT JOIN director_film df ON films.film_id = df.film_id
-                                                            LEFT JOIN directors AS d ON df.director_id = d.id
-                                                            LEFT JOIN ratings AS r ON films.rating_id = r.rating_id;""";
+                                                            r.name AS rating_name,
+                                                                        COUNT(likes.like_id) AS count_likes
+                                                                        FROM films
+                                                                        LEFT JOIN likes ON films.film_id = likes.film_id
+                                                                        LEFT JOIN film_genres AS fg ON films.film_id = fg.film_id
+                                                                        LEFT JOIN genres AS g ON fg.genre_id = g.genre_id
+                                                                        LEFT JOIN director_film df ON films.film_id = df.film_id
+                                                                        LEFT JOIN directors AS d ON df.director_id = d.id
+                                                                        LEFT JOIN ratings AS r ON films.rating_id = r.rating_id
+                                                                        GROUP BY films.film_id, fg.genre_id, g.name, df.director_id, d.name, r.name
+                                                                        ORDER BY count_likes DESC
+                                                                        LIMIT ?""";
+
+
+
+
+
+
 
     private static final String FIND_COMMON_FILMS_QUERY = """
                                                             SELECT films.*,

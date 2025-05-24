@@ -40,6 +40,18 @@ public class UserRepository extends BaseRepository<User> implements UserStorage 
                                                                 JOIN user_friends f2 ON f1.friend_id = f2.friend_id
                                                                 JOIN users u ON f1.friend_id = u.user_id
                                                                 WHERE f1.user_id = ? AND f2.user_id = ?;""";
+    private static final String FIND_USER_MAX_INTERSECTION_QUERY = """
+                                                                SELECT u.*
+                                                                FROM likes l
+                                                                LEFT JOIN users AS u ON l.user_id = u.user_id
+                                                                WHERE l.film_id IN (SELECT l.film_id
+                                                                                    FROM likes l
+                                                                                    WHERE l.user_id = ?) AND NOT l.user_id = ?
+                                                                GROUP BY l.user_id
+                                                                ORDER BY COUNT(l.film_id) DESC
+                                                                LIMIT 1
+                                                                """;
+
 
     @Autowired
     public UserRepository(JdbcTemplate jdbc, UserRowMapper mapper) {
@@ -116,6 +128,11 @@ public class UserRepository extends BaseRepository<User> implements UserStorage 
     @Override
     public Collection<User> getCommonFriends(Long id, Long otherId) {
         return findMany(FIND_COMMON_FRIENDS_QUERY, mapper, id, otherId);
+    }
+
+    @Override
+    public Optional<User> getUserWithMaxIntersections(Long id) {
+        return findOne(FIND_USER_MAX_INTERSECTION_QUERY, mapper, id, id);
     }
 }
 

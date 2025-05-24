@@ -18,6 +18,7 @@ import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.storage.director.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -35,14 +36,18 @@ public class FilmService {
     private final UserStorage userStorage;
     private final GenreRepository genreRepository;
     private final MpaRepository mpaRepository;
+    private final DirectorStorage directorStorage;
 
     @Autowired
-    public FilmService(@Qualifier("filmRepository") FilmStorage filmStorage, @Qualifier("userRepository") UserStorage userStorage,
+    public FilmService(@Qualifier("filmRepository") FilmStorage filmStorage,
+                       @Qualifier("userRepository") UserStorage userStorage,
+                       @Qualifier("directorRepository") DirectorStorage directorStorage,
                        GenreRepository genreRepository, MpaRepository mpaRepository) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
         this.genreRepository = genreRepository;
         this.mpaRepository = mpaRepository;
+        this.directorStorage = directorStorage;
     }
 
     public Collection<FilmDto> findAll() {
@@ -108,6 +113,22 @@ public class FilmService {
     public Collection<Film> getPopularFilms(Integer count) {
         validationCount(count);
         return filmStorage.getPopularFilms(count);
+    }
+
+    public Collection<FilmDto> getDirectorFilms(String sortBy, Long directorId) {
+        validateDirector(directorId);
+        return filmStorage.getDirectorFilms(sortBy, directorId)
+                .stream()
+                .map(FilmMapper::mapToFilmDto)
+                .collect(Collectors.toList());
+    }
+
+    private void validateDirector(Long id) {
+        directorStorage.findDirectorById(id).orElseThrow(() -> {
+            NotFoundException e = new NotFoundException("Директор " + id + " не найден");
+            log.error(e.getMessage());
+            return e;
+        });
     }
 
     private void validateDuration(BaseFilmDto film) {
@@ -186,5 +207,13 @@ public class FilmService {
     private void setLogValidationSuccess(BaseFilmDto film) {
         log.debug("The validation process for movie {} was completed successfully.", film.getName());
     }
-}
 
+    public Collection<FilmDto> getFriendsCommonFilms(Long userId, Long friendId) {
+        validateNotFoundUser(userId);
+        validateNotFoundUser(friendId);
+        return filmStorage.getFriendsCommonFilms(userId, friendId)
+                .stream()
+                .map(FilmMapper::mapToFilmDto)
+                .collect(Collectors.toList());
+    }
+}

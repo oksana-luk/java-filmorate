@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.dto.film.FilmDto;
 import ru.yandex.practicum.filmorate.dto.user.NewUserRequest;
 import ru.yandex.practicum.filmorate.dto.user.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.dto.user.UserDto;
@@ -88,6 +89,13 @@ public class UserController {
         Collection<UserDto> friends = userService.getCommonFriends(id, otherId);
         log.debug("GET /users/id/friends/common/id: the collection of common friends of users has been returned");
         return friends;
+    }
+
+    @GetMapping("{id}/recommendations")
+    public Collection<FilmDto> getCommonFriends(@PathVariable Long id) {
+        Collection<FilmDto> films = userService.getRecommendations(id);
+        log.debug("GET /users/id/recommendations: the collection of recommended films for user has been returned");
+        return films;
     }
 }
 

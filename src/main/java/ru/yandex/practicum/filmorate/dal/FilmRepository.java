@@ -83,6 +83,33 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                                                             LEFT JOIN director_film df ON films.film_id = df.film_id
                                                             LEFT JOIN directors AS d ON df.director_id = d.id
                                                             LEFT JOIN ratings AS r ON films.rating_id = r.rating_id;""";
+
+    private static final String FIND_COMMON_FILMS_QUERY = """
+                                                            SELECT films.*,
+                                                                fg.genre_id,
+                                                                g.name AS genre_name,
+                                                                df.director_id,
+                                                                d.name AS director_name,
+                                                                r.name AS rating_name
+                                                            FROM films
+                                                                LEFT JOIN film_genres fg ON films.film_id = fg.film_id
+                                                                LEFT JOIN genres AS g ON fg.genre_id = g.genre_id
+                                                                LEFT JOIN director_film df ON films.film_id = df.film_id
+                                                                LEFT JOIN directors AS d ON df.director_id = d.id
+                                                                LEFT JOIN ratings AS r ON films.rating_id = r.rating_id
+                                                            WHERE films.film_id IN (
+                                                                SELECT film_id
+                                                                FROM likes l
+                                                                WHERE user_id IN (?, ?)
+                                                                GROUP BY film_id
+                                                                HAVING COUNT(DISTINCT user_id) = 2
+                                                                ORDER BY (
+                                                                    SELECT COUNT(*)
+                                                                    FROM likes l2
+                                                                    WHERE l2.film_id = l.film_id
+                                                                    ) DESC
+                                                                )""";
+
     private static final String FIND_RECOMMENDATIONS_QUERY = """
                                                             SELECT films.*,
                                                             fg.genre_id,
@@ -101,6 +128,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                                                             AND NOT likes.film_id IN (SELECT l.FILM_ID
                                                                                     FROM LIKES l
                                                                                     WHERE l.USER_ID = ?)""";
+
 
     private static final String FIND_DIRECTOR_FILMS_BY_LIKES = """
                                                             SELECT films.*,
@@ -242,5 +270,15 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
         }
         throw new NotFoundException("Wrong parameter for sorting");
     }
+
+
+
+
+    @Override
+    public Collection<Film> getFriendsCommonFilms(Long userId, Long friendId) {
+        return extractMany(FIND_COMMON_FILMS_QUERY, listResultSetExtractor, userId, friendId);
+    }
+
+
 }
 

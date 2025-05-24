@@ -101,7 +101,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                                                             LEFT JOIN (	SELECT likes.film_id,
                                                                             COUNT(likes.like_id) AS count_likes
                                                                     FROM likes
-                                                                    GROUP BY film_id                                   
+                                                                    GROUP BY film_id
                                                                     ) AS c ON films.film_id = c.film_id
                                                             WHERE df.director_id = ?
                                                             ORDER BY likes_quantity DESC;""";

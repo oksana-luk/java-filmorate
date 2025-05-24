@@ -9,6 +9,8 @@ import ru.yandex.practicum.filmorate.exception.DuplicateException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -24,7 +26,8 @@ public class UserControllerTest {
     @BeforeEach
     void beforeEach() {
         UserStorage userStorage = new InMemoryUserStorage();
-        UserService userService = new UserService(userStorage);
+        FilmStorage filmStorage = new InMemoryFilmStorage();
+        UserService userService = new UserService(userStorage, filmStorage);
         userController = new UserController(userService);
     }
 

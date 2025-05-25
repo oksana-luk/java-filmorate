@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.dto.film.FilmDto;
 import ru.yandex.practicum.filmorate.dto.user.BaseUserDto;
 import ru.yandex.practicum.filmorate.dto.user.NewUserRequest;
 import ru.yandex.practicum.filmorate.dto.user.UpdateUserRequest;
@@ -11,8 +12,10 @@ import ru.yandex.practicum.filmorate.dto.user.UserDto;
 import ru.yandex.practicum.filmorate.exception.DuplicateException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.*;
@@ -22,10 +25,12 @@ import java.util.stream.Collectors;
 @Component
 public class UserService {
     private final UserStorage userStorage;
+    private final FilmStorage filmStorage;
 
     @Autowired
-    public UserService(@Qualifier("userRepository") UserStorage userStorage) {
+    public UserService(@Qualifier("userRepository") UserStorage userStorage, @Qualifier("filmRepository") FilmStorage filmStorage) {
         this.userStorage = userStorage;
+        this.filmStorage = filmStorage;
     }
 
     public Collection<UserDto> findAll() {
@@ -98,6 +103,15 @@ public class UserService {
                 .stream()
                 .map(UserMapper::mapToUserDto)
                 .collect(Collectors.toList());
+    }
+
+    public Collection<FilmDto> getRecommendations(Long id) {
+        validateNotFound(id);
+        Optional<User> userOpt = userStorage.getUserWithMaxIntersections(id);
+        return userOpt.map(user -> filmStorage.getRecommendations(id, user.getId())
+                .stream()
+                .map(FilmMapper::mapToFilmDto)
+                .collect(Collectors.toList())).orElseGet(List::of);
     }
 
     private User validateNotFound(Long id) {

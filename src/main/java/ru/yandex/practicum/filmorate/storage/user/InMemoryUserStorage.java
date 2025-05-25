@@ -99,6 +99,11 @@ public class InMemoryUserStorage implements UserStorage {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public Optional<User> getUserWithMaxIntersections(Long id) {
+        return Optional.empty();
+    }
+
     private void addFriendTo(Long id, Long friendId) {
         if (friends.containsKey(id)) {
             friends.get(id).add(friendId);

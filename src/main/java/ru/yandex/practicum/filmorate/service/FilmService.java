@@ -23,10 +23,7 @@ import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -212,6 +209,30 @@ public class FilmService {
         validateNotFoundUser(userId);
         validateNotFoundUser(friendId);
         return filmStorage.getFriendsCommonFilms(userId, friendId)
+                .stream()
+                .map(FilmMapper::mapToFilmDto)
+                .collect(Collectors.toList());
+    }
+
+    public Collection<FilmDto> searchFilmsByString(String query, String sortBy) {
+        if (query == null || query.isBlank()) {
+            return findAll();
+        }
+        Collection<Film> films;
+        Set<String> fields = new HashSet<>(Arrays.asList(sortBy.split(",")));
+        boolean searchByTitle = fields.contains("title");
+        boolean searchByDirector = fields.contains("director");
+
+        if (searchByTitle && searchByDirector) {
+            films = filmStorage.searchByTitleAndDirector(query);
+        } else if (searchByTitle) {
+            films = filmStorage.searchByTitle(query);
+        } else if (searchByDirector) {
+            films = filmStorage.searchByDirector(query);
+        } else {
+            return Collections.emptyList();
+        }
+        return films
                 .stream()
                 .map(FilmMapper::mapToFilmDto)
                 .collect(Collectors.toList());

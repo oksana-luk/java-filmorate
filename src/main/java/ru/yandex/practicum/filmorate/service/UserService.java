@@ -26,6 +26,7 @@ public class UserService {
     private final UserStorage userStorage;
     private final FeedService feedService;
 
+
     @Autowired
     public UserService(@Qualifier("userRepository") UserStorage userStorage, FeedService feedService) {
         this.userStorage = userStorage;

@@ -83,7 +83,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                                                             LEFT JOIN genres AS g ON fg.genre_id = g.genre_id
                                                             LEFT JOIN director_film df ON films.film_id = df.film_id
                                                             LEFT JOIN directors AS d ON df.director_id = d.id
-                                                            LEFT JOIN ratings AS r ON films.rating_id = r.rating_id;"""
+                                                            LEFT JOIN ratings AS r ON films.rating_id = r.rating_id;""";
 
     private static final String FIND_COMMON_FILMS_QUERY = """
                                                             SELECT films.*,

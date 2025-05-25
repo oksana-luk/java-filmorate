@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
@@ -71,18 +72,18 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                                                             df.director_id,
                                                             d.name AS director_name,
                                                             r.name AS rating_name
-                                                            FROM (	SELECT likes.film_id,
-                                                                            COUNT(likes.like_id) AS count_likes
-                                                                    FROM likes
-                                                                    GROUP BY film_id
-                                                                    ORDER BY COUNT(likes.like_id) DESC
+                                                            FROM (SELECT lk.film_id
+                                                                    FROM likes AS lk
+                                                                    #join#
+                                                                    GROUP BY lk.film_id
+                                                                    ORDER BY COUNT(*)
                                                                     LIMIT ?) AS c
                                                             LEFT JOIN films AS films ON c.film_id = films.film_id
                                                             LEFT JOIN film_genres AS fg ON c.film_id = fg.film_id
                                                             LEFT JOIN genres AS g ON fg.genre_id = g.genre_id
                                                             LEFT JOIN director_film df ON films.film_id = df.film_id
                                                             LEFT JOIN directors AS d ON df.director_id = d.id
-                                                            LEFT JOIN ratings AS r ON films.rating_id = r.rating_id;""";
+                                                            LEFT JOIN ratings AS r ON films.rating_id = r.rating_id""";
 
     private static final String FIND_DIRECTOR_FILMS_BY_LIKES = """
                                                             SELECT films.*,
@@ -206,8 +207,32 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     }
 
     @Override
-    public Collection<Film> getPopularFilms(Integer count) {
-        return extractMany(FIND_POPULAR_FILMS_QUERY, listResultSetExtractor, count);
+    public Collection<Film> getPopularFilms(Integer count, Integer genreId, LocalDate yearDate) {
+        String baseQuery = FIND_POPULAR_FILMS_QUERY;
+        String appendJoin = "";
+        if (!Objects.isNull(genreId) && !Objects.isNull(yearDate)) {
+            appendJoin = """
+                    LEFT JOIN film_genres AS fg ON lk.film_id = fg.film_id
+                    LEFT JOIN films AS f ON lk.film_id = f.film_id
+                    WHERE DATEDIFF(year, f.release_date, ?)=0 AND fg.genre_id = ?""";
+            baseQuery = baseQuery.replace("#join#", appendJoin);
+            return extractMany(baseQuery, listResultSetExtractor, yearDate, genreId, count);
+        } else if (!Objects.isNull(genreId)) {
+            appendJoin = """
+                    LEFT JOIN film_genres AS fg ON lk.film_id = fg.film_id
+                    WHERE fg.genre_id = ?""";
+            baseQuery = baseQuery.replace("#join#", appendJoin);
+            return extractMany(baseQuery, listResultSetExtractor, genreId, count);
+        } else if (!Objects.isNull(yearDate)) {
+            appendJoin = """
+                    LEFT JOIN films AS f ON lk.film_id = f.film_id
+                    WHERE DATEDIFF(year, f.release_date, ?)=0""";
+            baseQuery = baseQuery.replace("#join#", appendJoin);
+            return extractMany(baseQuery, listResultSetExtractor, yearDate, count);
+        } else {
+            baseQuery = baseQuery.replace("#join#", "");
+            return extractMany(baseQuery, listResultSetExtractor, count);
+        }
     }
 
     @Override
@@ -219,7 +244,5 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
         }
         throw new NotFoundException("Wrong parameter for sorting");
     }
-
-
 }
 

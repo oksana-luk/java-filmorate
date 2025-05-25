@@ -13,6 +13,7 @@ import ru.yandex.practicum.filmorate.dto.film.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Map;
 
@@ -79,10 +80,15 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public Collection<Film> getPopularFilms(@RequestParam(defaultValue = "10") Integer count) {
+    public Collection<Film> getPopularFilms(@RequestParam(defaultValue = "10") Integer count, @RequestParam(required = false) Integer genreId,
+                                            @RequestParam(required = false) String year) {
         count = (count == null) ? 10 : count;
+        LocalDate yearDate = null;
+        if (year != null && !year.isEmpty()) {
+            yearDate = LocalDate.of(Integer.parseInt(year), 1, 1);
+        }
         log.debug("GET/films/popular: start of finding {} popular movie", count);
-        Collection<Film> films = filmService.getPopularFilms(count);
+        Collection<Film> films = filmService.getPopularFilms(count, genreId, yearDate);
         log.debug("GET/films/process: the process was completed successfully. The collection of {} popular movies has been returned", count);
         return films;
     }

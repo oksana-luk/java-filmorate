@@ -36,6 +36,6 @@ public class FeedRepository extends BaseRepository<Event> {
                 event.getOperation().name(),
                 event.getEntityId());
         event.setEventId(id);
-        log.info("добавили событие в базу");
+        log.debug("Добавили событие в базу");
     }
 }

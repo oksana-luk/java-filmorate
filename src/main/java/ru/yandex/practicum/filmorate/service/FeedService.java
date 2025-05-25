@@ -4,13 +4,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.FeedRepository;
+import ru.yandex.practicum.filmorate.dto.event.EventDto;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.mapper.EventMapper;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.EventOperation;
 import ru.yandex.practicum.filmorate.model.EventType;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -18,8 +21,11 @@ import java.util.List;
 public class FeedService {
     private final FeedRepository feedRepository;
 
-    public List<Event> getFeed(Long id) {
-        return feedRepository.getFeed(id);
+    public List<EventDto> getFeed(Long id) {
+        List<Event> events = feedRepository.getFeed(id);
+        return events.stream()
+                .map(EventMapper::mapToEventDto)
+                .collect(Collectors.toList());
     }
 
     public void addEvent(Long userId, EventType eventType, EventOperation operation, Long entityId) {

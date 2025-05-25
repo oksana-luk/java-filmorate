@@ -85,14 +85,14 @@ public class UserService {
         validateAddFriend(id, friendId);
         userStorage.addFriend(id, friendId);
         feedService.addEvent(id, EventType.FRIEND, EventOperation.ADD, friendId);
-        log.info("Событие добавлено в ленту: пользовател с id: {} добавил друга с id: {}", id, friendId);
+        log.debug("Событие добавлено в ленту: пользовател с id: {} добавил друга с id: {}", id, friendId);
     }
 
     public boolean deleteFriend(Long id, Long friendId) {
         validateNotFound(id);
         validateNotFound(friendId);
         feedService.addEvent(id, EventType.FRIEND, EventOperation.REMOVE, friendId);
-        log.info("Событие добавлено в ленту: пользовател с id: {} удалил друга с id: {}", id, friendId);
+        log.debug("Событие добавлено в ленту: пользовател с id: {} удалил друга с id: {}", id, friendId);
         return userStorage.deleteFriend(id, friendId);
     }
 

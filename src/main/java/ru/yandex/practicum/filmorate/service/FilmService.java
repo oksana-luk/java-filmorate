@@ -103,7 +103,7 @@ public class FilmService {
         validateNotFoundUser(userId);
         filmStorage.likeFilm(id, userId);
         feedService.addEvent(userId, EventType.LIKE, EventOperation.ADD, id);
-        log.info("Событие добавлено в ленту: пользователь с id: {} лайкнул фильм с id: {}", userId, id);
+        log.debug("Событие добавлено в ленту: пользователь с id: {} лайкнул фильм с id: {}", userId, id);
     }
 
     public void deleteLike(Long id, Long userId) {
@@ -111,7 +111,7 @@ public class FilmService {
         validateNotFoundUser(userId);
         filmStorage.deleteLike(id, userId);
         feedService.addEvent(userId, EventType.LIKE, EventOperation.REMOVE, id);
-        log.info("Событие добавлено в ленту: пользователь с id: {} удалил лайк у фильма с id: {}", userId, id);
+        log.debug("Событие добавлено в ленту: пользователь с id: {} удалил лайк у фильма с id: {}", userId, id);
     }
 
     public Collection<Film> getPopularFilms(Integer count) {

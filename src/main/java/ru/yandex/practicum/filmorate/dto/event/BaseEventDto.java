@@ -5,7 +5,10 @@ import ru.yandex.practicum.filmorate.model.EventType;
 
 public interface BaseEventDto {
     Long getUserId();
+
     EventType getEventType();
+
     EventOperation getOperation();
+
     Long getEntityId();
 }

@@ -6,7 +6,7 @@ import ru.yandex.practicum.filmorate.model.EventOperation;
 import ru.yandex.practicum.filmorate.model.EventType;
 
 @Data
-public class NewEventRequest {
+public class NewEventRequest implements BaseEventDto {
     private Long timestamp;
 
     @NotNull(message = "User  ID cannot be null")

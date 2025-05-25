@@ -6,7 +6,7 @@ import ru.yandex.practicum.filmorate.model.EventOperation;
 import ru.yandex.practicum.filmorate.model.EventType;
 
 @Data
-public class EventDto {
+public class EventDto implements BaseEventDto {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long timestamp;
     private Long userId;

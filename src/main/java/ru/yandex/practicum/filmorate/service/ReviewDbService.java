@@ -8,12 +8,15 @@ import ru.yandex.practicum.filmorate.dto.review.ReviewDto;
 import ru.yandex.practicum.filmorate.dto.review.UpdateReviewRequest;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.ReviewMapper;
+import ru.yandex.practicum.filmorate.model.EventOperation;
+import ru.yandex.practicum.filmorate.model.EventType;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.review.ReviewStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -22,14 +25,16 @@ public class ReviewDbService implements ReviewService {
     private final ReviewStorage reviewStorage;
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
+    private final FeedService feedService;
 
     public ReviewDbService(
             @Qualifier("reviewRepository") ReviewStorage reviewStorage,
             @Qualifier("filmRepository") FilmStorage filmStorage,
-            @Qualifier("userRepository") UserStorage userStorage) {
+            @Qualifier("userRepository") UserStorage userStorage, FeedService feedService) {
         this.reviewStorage = reviewStorage;
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
+        this.feedService = feedService;
     }
 
     @Override
@@ -39,6 +44,7 @@ public class ReviewDbService implements ReviewService {
         Review review = ReviewMapper.mapToReview(newReviewRequest);
         review = reviewStorage.addReview(review);
         validateNotFound(review.getReviewId());
+        feedService.addEvent(newReviewRequest.getUserId(), EventType.REVIEW, EventOperation.ADD, review.getReviewId());
         return ReviewMapper.mapToReviewDto(review);
     }
 
@@ -48,12 +54,19 @@ public class ReviewDbService implements ReviewService {
         review = ReviewMapper.updateReviewFields(review, updateReviewRequest);
         review = reviewStorage.updateReview(review);
         review = validateNotFound(review.getReviewId());
+        feedService.addEvent(review.getUserId(), EventType.REVIEW, EventOperation.UPDATE, review.getReviewId());
         return ReviewMapper.mapToReviewDto(review);
     }
 
     @Override
     public boolean deleteReview(Long id) {
         validateNotFound(id);
+        Optional<Review> reviewOptional = reviewStorage.findReviewById(id);
+        if (reviewOptional.isEmpty()) {
+            throw new NotFoundException("Review not found with id: " + id);
+        }
+        Long userId = reviewOptional.get().getUserId();
+        feedService.addEvent(userId, EventType.REVIEW, EventOperation.REMOVE, id);
         return reviewStorage.deleteReviewById(id);
     }
 

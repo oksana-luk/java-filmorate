@@ -12,6 +12,8 @@ import ru.yandex.practicum.filmorate.exception.DuplicateException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
+import ru.yandex.practicum.filmorate.model.EventOperation;
+import ru.yandex.practicum.filmorate.model.EventType;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -22,10 +24,12 @@ import java.util.stream.Collectors;
 @Component
 public class UserService {
     private final UserStorage userStorage;
+    private final FeedService feedService;
 
     @Autowired
-    public UserService(@Qualifier("userRepository") UserStorage userStorage) {
+    public UserService(@Qualifier("userRepository") UserStorage userStorage, FeedService feedService) {
         this.userStorage = userStorage;
+        this.feedService = feedService;
     }
 
     public Collection<UserDto> findAll() {
@@ -75,11 +79,15 @@ public class UserService {
         validateNotFound(friendId);
         validateAddFriend(id, friendId);
         userStorage.addFriend(id, friendId);
+        feedService.addEvent(id, EventType.FRIEND, EventOperation.ADD, friendId);
+        log.info("Событие добавлено в ленту: пользовател с id: {} добавил друга с id: {}", id, friendId);
     }
 
     public boolean deleteFriend(Long id, Long friendId) {
         validateNotFound(id);
         validateNotFound(friendId);
+        feedService.addEvent(id, EventType.FRIEND, EventOperation.REMOVE, friendId);
+        log.info("Событие добавлено в ленту: пользовател с id: {} удалил друга с id: {}", id, friendId);
         return userStorage.deleteFriend(id, friendId);
     }
 

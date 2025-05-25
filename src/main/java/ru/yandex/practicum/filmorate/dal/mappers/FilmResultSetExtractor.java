@@ -14,30 +14,30 @@ import java.sql.Timestamp;
 public class FilmResultSetExtractor implements ResultSetExtractor<Film> {
 
     @Override
-    public Film extractData(ResultSet rs) throws SQLException, DataAccessException {
-        Film film =  new Film();
-        rs.next();
-        film.setId(rs.getLong("film_id"));
-        film.setName(rs.getString("name"));
-        film.setDescription((rs.getString("description")));
-        film.setDuration(rs.getInt("duration"));
-        Timestamp registrationDate = rs.getTimestamp("release_date");
-        film.setReleaseDate(registrationDate.toLocalDateTime().toLocalDate());
-        film.setMpa(new Mpa(rs.getInt("rating_id"), rs.getString("rating_name")));
-        if (rs.getInt("genre_id") != 0) {
-            film.addGenre(rs.getInt("genre_id"), rs.getString("genre_name"));
-        }
-        if (rs.getLong("director_id") != 0) {
-            film.addDirector(rs.getLong("director_id"), rs.getString("director_name"));
-        }
-        while (rs.next()) {
-            if (rs.getInt("genre_id") != 0) {
-                film.addGenre(rs.getInt("genre_id"), rs.getString("genre_name"));
+    public Film extractData(ResultSet rs) throws DataAccessException {
+        try {
+            if (!rs.next()) {
+                return null;
             }
-            if (rs.getLong("director_id") != 0) {
-                film.addDirector(rs.getLong("director_id"), rs.getString("director_name"));
+            Film film = new Film();
+            film.setId(rs.getLong("film_id"));
+            film.setName(rs.getString("name"));
+            film.setDescription(rs.getString("description"));
+            film.setDuration(rs.getInt("duration"));
+            Timestamp registrationDate = rs.getTimestamp("release_date");
+            if (registrationDate != null) {
+                film.setReleaseDate(registrationDate.toLocalDateTime().toLocalDate());
             }
+            film.setMpa(new Mpa(rs.getInt("rating_id"), rs.getString("rating_name")));
+            do {
+                if (rs.getInt("genre_id") != 0) {
+                    film.addGenre(rs.getInt("genre_id"), rs.getString("genre_name"));
+                }
+            } while (rs.next());
+            return film;
+        } catch (SQLException e) {
+            throw new DataAccessException("Ошибка при извлечении данных о фильме", e) {
+            };
         }
-        return film;
     }
 }

@@ -96,4 +96,12 @@ public class FilmController {
         log.debug("GET/films/director/{}: films of director {} sorted by {} found", directorId, directorId,sortBy);
         return films;
     }
+
+    @GetMapping("/common")
+    public Collection<FilmDto> getFriendsCommonFilms(@RequestParam Long userId, @RequestParam Long friendId) {
+        log.debug("GET/films/common: start of finding {} common movie");
+        Collection<FilmDto> films = filmService.getFriendsCommonFilms(userId, friendId);
+        log.debug("GET/films/process: the process was completed successfully. The collection of {} common movies has been returned");
+        return films;
+    }
 }

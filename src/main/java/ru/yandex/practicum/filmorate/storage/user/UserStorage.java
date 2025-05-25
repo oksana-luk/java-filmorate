@@ -28,4 +28,6 @@ public interface UserStorage {
     Collection<User> getFriends(Long id);
 
     Collection<User> getCommonFriends(Long id, Long otherId);
+
+    Optional<User> getUserWithMaxIntersections(Long id);
 }

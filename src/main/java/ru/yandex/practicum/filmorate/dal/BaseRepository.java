@@ -67,5 +67,4 @@ public class BaseRepository<T> {
         int rowDeleted = jdbc.update(query, params);
         return rowDeleted > 0;
     }
-
 }

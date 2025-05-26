@@ -109,4 +109,15 @@ public class FilmController {
         log.debug("GET/films/process: the process was completed successfully. The collection of {} common movies has been returned");
         return films;
     }
+
+    @GetMapping("/search")
+    public Collection<FilmDto> searchFilmsByString(
+            @RequestParam String query,
+            @RequestParam(required = false) @Pattern(regexp = "^(title|director)(,(title|director))?$",
+                    message = "Invalid sortBy value") String by) {
+        log.debug("GET/films/search: start of finding {} in movies", query);
+        Collection<FilmDto> films = filmService.searchFilmsByString(query, by);
+        log.debug("GET/films/process: the process was completed successfully. The collection movies has been returned");
+        return films;
+    }
 }

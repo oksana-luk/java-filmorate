@@ -25,6 +25,21 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     protected final FilmResultSetExtractor resultSetExtractor;
     protected final FilmListResultSetExtractor listResultSetExtractor;
 
+    private static final String FIND_ALL_FILMS = """
+                                                        SELECT films.*,
+                                                        fg.genre_id,
+                                                        g.name AS genre_name,
+                                                        df.director_id,
+                                                        d.name AS director_name,
+                                                        r.name AS rating_name
+                                                        FROM films
+                                                        LEFT JOIN film_genres fg ON films.film_id = fg.film_id
+                                                        LEFT JOIN genres AS g ON fg.genre_id = g.genre_id
+                                                        LEFT JOIN likes AS l ON films.film_id = l.film_id
+                                                        LEFT JOIN director_film df ON films.film_id = df.film_id
+                                                        LEFT JOIN directors AS d ON df.director_id = d.id
+                                                        LEFT JOIN ratings AS r ON films.rating_id = r.rating_id""";
+
     private static final String FIND_ALL_FILMS_QUERY = """
                                                         SELECT films.*,
                                                         fg.genre_id,
@@ -62,7 +77,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                                                     WHERE film_id = ?""";
     private static final String DELETE_FILM_QUERY = "DELETE films WHERE film_id = ?";
     private static final String DELETE_FILM_GENRE_QUERY = "DELETE film_genres WHERE film_id = ?";
-    private static final String DELETE_DIRECTOR_FILM_QUERY = "DELETE director_film WHERE film_id = ?";
+    private static final String DELETE_DIRECTOR_FILM_QUERY = "DELETE FROM director_film WHERE film_id = ?";
     private static final String INSERT_LIKE_QUERY = "INSERT INTO likes (film_id, user_id) VALUES (?, ?)";
     private static final String DELETE_LIKE_QUERY = "DELETE likes WHERE film_id = ? AND user_id = ?";
     private static final String FIND_POPULAR_FILMS_QUERY = """
@@ -170,6 +185,16 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                                                         LEFT JOIN ratings AS r ON films.rating_id = r.rating_id
                                                         WHERE df.director_id = ?
                                                         ORDER BY YEAR(films.release_date) ASC;""";
+    private static final String ORDER_BY_LIKES = """
+                                                    ORDER BY (
+                                                          SELECT COUNT(*)
+                                                          FROM likes l2
+                                                          WHERE l2.film_id = l.film_id
+                                                          ) DESC""";
+
+    private static final String FIND_FILMS_BY_TITLE = " WHERE films.name ILike ? ";
+    private static final String FIND_FILMS_BY_DIRECTOR = " WHERE d.name ILike ? ";
+    private static final String FIND_FILMS_BY_DIRECTOR_AND_TITLE = " WHERE d.name ILike ? OR films.name ILike ? ";
 
     @Autowired
     public FilmRepository(JdbcTemplate jdbc, FilmResultSetExtractor resultSetExtractor,
@@ -301,5 +326,26 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     @Override
     public Collection<Film> getFriendsCommonFilms(Long userId, Long friendId) {
         return extractMany(FIND_COMMON_FILMS_QUERY, listResultSetExtractor, userId, friendId);
+    }
+
+    @Override
+    public Collection<Film> searchByTitleAndDirector(String query) {
+        return extractMany(FIND_ALL_FILMS
+                + FIND_FILMS_BY_DIRECTOR_AND_TITLE
+                + ORDER_BY_LIKES, listResultSetExtractor, "%" + query + "%", "%" + query + "%");
+    }
+
+    @Override
+    public Collection<Film> searchByTitle(String query) {
+        return extractMany(FIND_ALL_FILMS
+                + FIND_FILMS_BY_TITLE
+                + ORDER_BY_LIKES, listResultSetExtractor, "%" + query + "%");
+    }
+
+    @Override
+    public Collection<Film> searchByDirector(String query) {
+        return extractMany(FIND_ALL_FILMS
+                + FIND_FILMS_BY_DIRECTOR
+                + ORDER_BY_LIKES, listResultSetExtractor, "%" + query + "%");
     }
 }

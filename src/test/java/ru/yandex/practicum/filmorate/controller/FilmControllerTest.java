@@ -27,7 +27,7 @@ public class FilmControllerTest {
     void beforeEach() {
         FilmStorage filmStorage = new InMemoryFilmStorage();
         UserStorage userStorage = new InMemoryUserStorage();
-        FilmService filmService = new FilmService(filmStorage, userStorage,null, null, null);
+        FilmService filmService = new FilmService(filmStorage, userStorage,null, null, null, null);
         filmController = new FilmController(filmService);
     }
 

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
@@ -81,28 +82,25 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     private static final String DELETE_LIKE_QUERY = "DELETE likes WHERE film_id = ? AND user_id = ?";
     private static final String FIND_POPULAR_FILMS_QUERY = """
                                                             SELECT films.*,
+                                                            c.countLike,
                                                             fg.genre_id,
                                                             g.name AS genre_name,
                                                             df.director_id,
                                                             d.name AS director_name,
-                                                            r.name AS rating_name,
-                                                                        COUNT(likes.like_id) AS count_likes
-                                                                        FROM films
-                                                                        LEFT JOIN likes ON films.film_id = likes.film_id
-                                                                        LEFT JOIN film_genres AS fg ON films.film_id = fg.film_id
-                                                                        LEFT JOIN genres AS g ON fg.genre_id = g.genre_id
-                                                                        LEFT JOIN director_film df ON films.film_id = df.film_id
-                                                                        LEFT JOIN directors AS d ON df.director_id = d.id
-                                                                        LEFT JOIN ratings AS r ON films.rating_id = r.rating_id
-                                                                        GROUP BY films.film_id, fg.genre_id, g.name, df.director_id, d.name, r.name
-                                                                        ORDER BY count_likes DESC
-                                                                        LIMIT ?""";
-
-
-
-
-
-
+                                                            r.name AS rating_name
+                                                            FROM (SELECT lk.film_id,
+                                                                    COUNT(lk.film_id) as countLike
+                                                                    FROM likes AS lk
+                                                                    #join#
+                                                                    GROUP BY lk.film_id
+                                                                    LIMIT ?) AS c
+                                                            LEFT JOIN films AS films ON c.film_id = films.film_id
+                                                            LEFT JOIN film_genres AS fg ON c.film_id = fg.film_id
+                                                            LEFT JOIN genres AS g ON fg.genre_id = g.genre_id
+                                                            LEFT JOIN director_film df ON films.film_id = df.film_id
+                                                            LEFT JOIN directors AS d ON df.director_id = d.id
+                                                            LEFT JOIN ratings AS r ON films.rating_id = r.rating_id
+                                                            ORDER BY c.countLike DESC;""";
 
     private static final String FIND_COMMON_FILMS_QUERY = """
                                                             SELECT films.*,
@@ -282,8 +280,32 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     }
 
     @Override
-    public Collection<Film> getPopularFilms(Integer count) {
-        return extractMany(FIND_POPULAR_FILMS_QUERY, listResultSetExtractor, count);
+    public Collection<Film> getPopularFilms(Integer count, Integer genreId, LocalDate yearDate) {
+        String baseQuery = FIND_POPULAR_FILMS_QUERY;
+        String appendJoin = "";
+        if (!Objects.isNull(genreId) && !Objects.isNull(yearDate)) {
+            appendJoin = """
+                    LEFT JOIN film_genres AS fg ON lk.film_id = fg.film_id
+                    LEFT JOIN films AS f ON lk.film_id = f.film_id
+                    WHERE DATEDIFF(year, f.release_date, ?)=0 AND fg.genre_id = ?""";
+            baseQuery = baseQuery.replace("#join#", appendJoin);
+            return extractMany(baseQuery, listResultSetExtractor, yearDate, genreId, count);
+        } else if (!Objects.isNull(genreId)) {
+            appendJoin = """
+                    LEFT JOIN film_genres AS fg ON lk.film_id = fg.film_id
+                    WHERE fg.genre_id = ?""";
+            baseQuery = baseQuery.replace("#join#", appendJoin);
+            return extractMany(baseQuery, listResultSetExtractor, genreId, count);
+        } else if (!Objects.isNull(yearDate)) {
+            appendJoin = """
+                    LEFT JOIN films AS f ON lk.film_id = f.film_id
+                    WHERE DATEDIFF(year, f.release_date, ?)=0""";
+            baseQuery = baseQuery.replace("#join#", appendJoin);
+            return extractMany(baseQuery, listResultSetExtractor, yearDate, count);
+        } else {
+            baseQuery = baseQuery.replace("#join#", "");
+            return extractMany(baseQuery, listResultSetExtractor, count);
+        }
     }
 
     @Override

@@ -27,7 +27,7 @@ public class UserControllerTest {
     void beforeEach() {
         UserStorage userStorage = new InMemoryUserStorage();
         FilmStorage filmStorage = new InMemoryFilmStorage();
-        UserService userService = new UserService(userStorage, filmStorage);
+        UserService userService = new UserService(userStorage, filmStorage, null);
         userController = new UserController(userService);
     }
 

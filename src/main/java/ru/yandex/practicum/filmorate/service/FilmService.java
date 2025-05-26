@@ -15,9 +15,7 @@ import ru.yandex.practicum.filmorate.dto.film.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.storage.director.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
@@ -37,17 +35,19 @@ public class FilmService {
     private final GenreRepository genreRepository;
     private final MpaRepository mpaRepository;
     private final DirectorStorage directorStorage;
+    private final FeedService feedService;
 
     @Autowired
     public FilmService(@Qualifier("filmRepository") FilmStorage filmStorage,
                        @Qualifier("userRepository") UserStorage userStorage,
                        @Qualifier("directorRepository") DirectorStorage directorStorage,
-                       GenreRepository genreRepository, MpaRepository mpaRepository) {
+                       GenreRepository genreRepository, MpaRepository mpaRepository, FeedService feedService) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
         this.genreRepository = genreRepository;
         this.mpaRepository = mpaRepository;
         this.directorStorage = directorStorage;
+        this.feedService = feedService;
     }
 
     public Collection<FilmDto> findAll() {
@@ -102,12 +102,16 @@ public class FilmService {
         validateNotFound(id);
         validateNotFoundUser(userId);
         filmStorage.likeFilm(id, userId);
+        feedService.addEvent(userId, EventType.LIKE, EventOperation.ADD, id);
+        log.debug("Событие добавлено в ленту: пользователь с id: {} лайкнул фильм с id: {}", userId, id);
     }
 
     public void deleteLike(Long id, Long userId) {
         validateNotFound(id);
         validateNotFoundUser(userId);
         filmStorage.deleteLike(id, userId);
+        feedService.addEvent(userId, EventType.LIKE, EventOperation.REMOVE, id);
+        log.debug("Событие добавлено в ленту: пользователь с id: {} удалил лайк у фильма с id: {}", userId, id);
     }
 
     public Collection<Film> getPopularFilms(Integer count) {

@@ -35,6 +35,35 @@ public class FilmMapper {
         return dto;
     }
 
+    public static Film updateFilmFields(UpdateFilmRequest request) {
+        Film film = new Film();
+        if (request.hasId()) {
+            film.setId(request.getId());
+        }
+        if (request.hasName()) {
+            film.setName(request.getName());
+        }
+        if (request.hasDescription()) {
+            film.setDescription(request.getDescription());
+        }
+        if (request.hasReleaseDate()) {
+            film.setReleaseDate(request.getReleaseDate());
+        }
+        if (request.hasDuration()) {
+            film.setDuration(request.getDuration());
+        }
+        if (request.hasGenres()) {
+            film.setGenres(request.getGenres());
+        }
+        if (request.hasDirectors()) {
+            film.setDirectors(request.getDirectors());
+        }
+        if (request.hasRating()) {
+            film.setMpa(request.getMpa());
+        }
+        return film;
+    }
+
     public static Film updateFilmFields(Film film, UpdateFilmRequest request) {
         if (request.hasName()) {
             film.setName(request.getName());

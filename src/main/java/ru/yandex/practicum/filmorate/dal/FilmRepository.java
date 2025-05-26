@@ -75,11 +75,11 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     private static final String UPDATE_FILM_QUERY = """
                                                     UPDATE films SET name = ?, description = ?, release_date = ?, duration = ?, rating_id = ?
                                                     WHERE film_id = ?""";
-    private static final String DELETE_FILM_QUERY = "DELETE films WHERE film_id = ?";
-    private static final String DELETE_FILM_GENRE_QUERY = "DELETE film_genres WHERE film_id = ?";
+    private static final String DELETE_FILM_QUERY = "DELETE FROM films WHERE film_id = ?";
+    private static final String DELETE_FILM_GENRE_QUERY = "DELETE FROM film_genres WHERE film_id = ?";
     private static final String DELETE_DIRECTOR_FILM_QUERY = "DELETE FROM director_film WHERE film_id = ?";
     private static final String INSERT_LIKE_QUERY = "INSERT INTO likes (film_id, user_id) VALUES (?, ?)";
-    private static final String DELETE_LIKE_QUERY = "DELETE likes WHERE film_id = ? AND user_id = ?";
+    private static final String DELETE_LIKE_QUERY = "DELETE FROM likes WHERE film_id = ? AND user_id = ?";
     private static final String FIND_POPULAR_FILMS_QUERY = """
                                                             SELECT films.*,
                                                             c.countLike,
@@ -247,12 +247,14 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                 film.getDuration(),
                 film.getMpa().getId(),
                 film.getId());
-        delete(DELETE_FILM_GENRE_QUERY, film.getId());
-        delete(DELETE_DIRECTOR_FILM_QUERY, film.getId());
-        for (Genre genre : film.getGenres()) {
-            try {
-                insert(INSERT_FILM_GENRE_QUERY, film.getId(), genre.getId());
-            } catch (DuplicateKeyException ignored) {
+        jdbc.update(DELETE_FILM_GENRE_QUERY, film.getId());
+        jdbc.update(DELETE_DIRECTOR_FILM_QUERY, film.getId());
+        if (!film.getGenres().isEmpty()) {
+            for (Genre genre : film.getGenres()) {
+                try {
+                    jdbc.update(INSERT_FILM_GENRE_QUERY, film.getId(), genre.getId());
+                } catch (DuplicateKeyException ignored) {
+                }
             }
         }
         for (Director director: film.getDirectors()) {

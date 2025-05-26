@@ -59,4 +59,8 @@ public class UpdateFilmRequest implements BaseFilmDto {
     public boolean hasDirectors() {
         return !directors.isEmpty();
     }
+
+    public boolean hasId() {
+        return id != null;
+    }
 }

@@ -71,7 +71,7 @@ public class FilmService {
     }
 
     public FilmDto updateFilm(UpdateFilmRequest updateFilmRequest) {
-        Film film = validateNotFound(updateFilmRequest.getId());
+        validateNotFound(updateFilmRequest.getId());
         if (updateFilmRequest.hasReleaseDate()) {
             validateReleaseDate(updateFilmRequest);
         }
@@ -84,7 +84,7 @@ public class FilmService {
         if (updateFilmRequest.hasRating()) {
             validateRating(updateFilmRequest.getMpa());
         }
-        film = FilmMapper.updateFilmFields(film, updateFilmRequest);
+        Film film = FilmMapper.updateFilmFields(updateFilmRequest);
         film = filmStorage.updateFilm(film);
         film = validateNotFound(film.getId());
         return FilmMapper.mapToFilmDto(film);

@@ -114,9 +114,19 @@ public class FilmService {
         log.debug("Событие добавлено в ленту: пользователь с id: {} удалил лайк у фильма с id: {}", userId, id);
     }
 
-    public Collection<Film> getPopularFilms(Integer count) {
+    public Collection<FilmDto> getPopularFilms(Integer count, Integer genreId, LocalDate yearDate) {
         validationCount(count);
-        return filmStorage.getPopularFilms(count);
+        if (!Objects.isNull(genreId)) {
+            genreRepository.findGenreById(genreId).orElseThrow(() -> {
+                String message = String.format("The service did not find genre by id %s", genreId);
+                setLogWarn(message);
+                return new NotFoundException(message);
+            });
+        }
+        return filmStorage.getPopularFilms(count, genreId, yearDate)
+                .stream()
+                .map(FilmMapper::mapToFilmDto)
+                .collect(Collectors.toList());
     }
 
     public Collection<FilmDto> getDirectorFilms(String sortBy, Long directorId) {

@@ -110,9 +110,19 @@ public class FilmService {
         filmStorage.deleteLike(id, userId);
     }
 
-    public Collection<Film> getPopularFilms(Integer count) {
+    public Collection<FilmDto> getPopularFilms(Integer count, Integer genreId, LocalDate yearDate) {
         validationCount(count);
-        return filmStorage.getPopularFilms(count);
+        if (!Objects.isNull(genreId)) {
+            genreRepository.findGenreById(genreId).orElseThrow(() -> {
+                String message = String.format("The service did not find genre by id %s", genreId);
+                setLogWarn(message);
+                return new NotFoundException(message);
+            });
+        }
+        return filmStorage.getPopularFilms(count, genreId, yearDate)
+                .stream()
+                .map(FilmMapper::mapToFilmDto)
+                .collect(Collectors.toList());
     }
 
     public Collection<FilmDto> getDirectorFilms(String sortBy, Long directorId) {

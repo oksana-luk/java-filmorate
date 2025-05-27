@@ -78,29 +78,34 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     private static final String DELETE_FILM_QUERY = "DELETE FROM films WHERE film_id = ?";
     private static final String DELETE_FILM_GENRE_QUERY = "DELETE FROM film_genres WHERE film_id = ?";
     private static final String DELETE_DIRECTOR_FILM_QUERY = "DELETE FROM director_film WHERE film_id = ?";
-    private static final String INSERT_LIKE_QUERY = "INSERT INTO likes (film_id, user_id) VALUES (?, ?)";
+    private static final String INSERT_LIKE_QUERY = "MERGE INTO likes (film_id, user_id) KEY (film_id, user_id) VALUES (?, ?)";
     private static final String DELETE_LIKE_QUERY = "DELETE FROM likes WHERE film_id = ? AND user_id = ?";
     private static final String FIND_POPULAR_FILMS_QUERY = """
                                                             SELECT films.*,
-                                                            COALESCE(c.countLike, 0) AS countLike,
+                                                            c.countLike AS countLike,
                                                             fg.genre_id,
                                                             g.name AS genre_name,
                                                             df.director_id,
                                                             d.name AS director_name,
                                                             r.name AS rating_name
-                                                            FROM films
-                                                            LEFT JOIN (SELECT lk.film_id,
-                                                                        COUNT(*) as countLike
-                                                                        FROM likes AS lk
-                                                                        GROUP BY lk.film_id) AS c ON films.film_id = c.film_id
+                                                            FROM (SELECT films.film_id,
+                                                                        MAX(COALESCE(c.countLike, 0)) AS countLike
+                                                                        FROM films
+                                                                        LEFT JOIN (SELECT lk.film_id,
+                                                                                    COUNT(*) as countLike
+                                                                                    FROM likes AS lk
+                                                                                    GROUP BY lk.film_id) AS c ON films.film_id = c.film_id
+                                                                        LEFT JOIN film_genres AS fg ON films.film_id = fg.film_id
+                                                                        #join#
+                                                                        GROUP BY films.film_id
+                                                                        ORDER BY COALESCE(c.countLike, 0) DESC
+                                                                        LIMIT ?) AS c
+                                                            LEFT JOIN films AS films ON films.film_id = c.film_id
                                                             LEFT JOIN film_genres AS fg ON films.film_id = fg.film_id
                                                             LEFT JOIN genres AS g ON fg.genre_id = g.genre_id
                                                             LEFT JOIN director_film df ON films.film_id = df.film_id
                                                             LEFT JOIN directors AS d ON df.director_id = d.id
-                                                            LEFT JOIN ratings AS r ON films.rating_id = r.rating_id
-                                                            #join#
-                                                            ORDER BY COALESCE(c.countLike, 0) DESC
-                                                            LIMIT ?;""";
+                                                            LEFT JOIN ratings AS r ON films.rating_id = r.rating_id;""";
 
     private static final String FIND_COMMON_FILMS_QUERY = """
                                                             SELECT films.*,
@@ -287,16 +292,12 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
         String appendJoin = "";
         if (!Objects.isNull(genreId) && !Objects.isNull(yearDate)) {
             appendJoin = """
-                WHERE DATEDIFF(year, films.release_date, ?)=0 AND films.film_id NOT IN (SELECT fmg.film_id
-                                                                                        FROM film_genres AS fmg
-                                                                                        WHERE genre_id = ?)""";
+                WHERE DATEDIFF(year, films.release_date, ?)=0 AND fg.genre_id = ?""";
             baseQuery = baseQuery.replace("#join#", appendJoin);
             return extractMany(baseQuery, listResultSetExtractor, yearDate, genreId, count);
         } else if (!Objects.isNull(genreId)) {
             appendJoin = """
-                WHERE films.film_id NOT IN (SELECT fmg.film_id
-                                             FROM film_genres AS fmg
-                                             WHERE genre_id = ?)""";
+                WHERE fg.genre_id = ?""";
             baseQuery = baseQuery.replace("#join#", appendJoin);
             return extractMany(baseQuery, listResultSetExtractor, genreId, count);
         } else if (!Objects.isNull(yearDate)) { //

@@ -82,25 +82,25 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     private static final String DELETE_LIKE_QUERY = "DELETE FROM likes WHERE film_id = ? AND user_id = ?";
     private static final String FIND_POPULAR_FILMS_QUERY = """
                                                             SELECT films.*,
-                                                            c.countLike,
+                                                            COALESCE(c.countLike, 0) AS countLike,
                                                             fg.genre_id,
                                                             g.name AS genre_name,
                                                             df.director_id,
                                                             d.name AS director_name,
                                                             r.name AS rating_name
-                                                            FROM (SELECT lk.film_id,
-                                                                    COUNT(lk.film_id) as countLike
-                                                                    FROM likes AS lk
-                                                                    #join#
-                                                                    GROUP BY lk.film_id
-                                                                    LIMIT ?) AS c
-                                                            LEFT JOIN films AS films ON c.film_id = films.film_id
-                                                            LEFT JOIN film_genres AS fg ON c.film_id = fg.film_id
+                                                            FROM films
+                                                            LEFT JOIN (SELECT lk.film_id,
+                                                                        COUNT(*) as countLike
+                                                                        FROM likes AS lk
+                                                                        GROUP BY lk.film_id) AS c ON films.film_id = c.film_id
+                                                            LEFT JOIN film_genres AS fg ON films.film_id = fg.film_id
                                                             LEFT JOIN genres AS g ON fg.genre_id = g.genre_id
                                                             LEFT JOIN director_film df ON films.film_id = df.film_id
                                                             LEFT JOIN directors AS d ON df.director_id = d.id
                                                             LEFT JOIN ratings AS r ON films.rating_id = r.rating_id
-                                                            ORDER BY c.countLike DESC;""";
+                                                            #join#
+                                                            ORDER BY COALESCE(c.countLike, 0) DESC
+                                                            LIMIT ?;""";
 
     private static final String FIND_COMMON_FILMS_QUERY = """
                                                             SELECT films.*,
@@ -287,21 +287,17 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
         String appendJoin = "";
         if (!Objects.isNull(genreId) && !Objects.isNull(yearDate)) {
             appendJoin = """
-                    LEFT JOIN film_genres AS fg ON lk.film_id = fg.film_id
-                    LEFT JOIN films AS f ON lk.film_id = f.film_id
-                    WHERE DATEDIFF(year, f.release_date, ?)=0 AND fg.genre_id = ?""";
+                    WHERE DATEDIFF(year, films.release_date, ?)=0 AND fg.genre_id = ?""";
             baseQuery = baseQuery.replace("#join#", appendJoin);
             return extractMany(baseQuery, listResultSetExtractor, yearDate, genreId, count);
         } else if (!Objects.isNull(genreId)) {
             appendJoin = """
-                    LEFT JOIN film_genres AS fg ON lk.film_id = fg.film_id
                     WHERE fg.genre_id = ?""";
             baseQuery = baseQuery.replace("#join#", appendJoin);
             return extractMany(baseQuery, listResultSetExtractor, genreId, count);
         } else if (!Objects.isNull(yearDate)) {
             appendJoin = """
-                    LEFT JOIN films AS f ON lk.film_id = f.film_id
-                    WHERE DATEDIFF(year, f.release_date, ?)=0""";
+                    WHERE DATEDIFF(year, films.release_date, ?)=0""";
             baseQuery = baseQuery.replace("#join#", appendJoin);
             return extractMany(baseQuery, listResultSetExtractor, yearDate, count);
         } else {

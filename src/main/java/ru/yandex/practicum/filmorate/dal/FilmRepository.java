@@ -287,20 +287,24 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
         String appendJoin = "";
         if (!Objects.isNull(genreId) && !Objects.isNull(yearDate)) {
             appendJoin = """
-                    WHERE DATEDIFF(year, films.release_date, ?)=0 AND fg.genre_id = ?""";
+                WHERE DATEDIFF(year, films.release_date, ?)=0 AND films.film_id NOT IN (SELECT fmg.film_id
+                                                                                        FROM film_genres AS fmg
+                                                                                        WHERE genre_id = ?)""";
             baseQuery = baseQuery.replace("#join#", appendJoin);
             return extractMany(baseQuery, listResultSetExtractor, yearDate, genreId, count);
         } else if (!Objects.isNull(genreId)) {
             appendJoin = """
-                    WHERE fg.genre_id = ?""";
+                WHERE films.film_id NOT IN (SELECT fmg.film_id
+                                             FROM film_genres AS fmg
+                                             WHERE genre_id = ?)""";
             baseQuery = baseQuery.replace("#join#", appendJoin);
             return extractMany(baseQuery, listResultSetExtractor, genreId, count);
-        } else if (!Objects.isNull(yearDate)) {
+        } else if (!Objects.isNull(yearDate)) { //
             appendJoin = """
-                    WHERE DATEDIFF(year, films.release_date, ?)=0""";
+                WHERE DATEDIFF(year, films.release_date, ?)=0""";
             baseQuery = baseQuery.replace("#join#", appendJoin);
             return extractMany(baseQuery, listResultSetExtractor, yearDate, count);
-        } else {
+        } else { //
             baseQuery = baseQuery.replace("#join#", "");
             return extractMany(baseQuery, listResultSetExtractor, count);
         }

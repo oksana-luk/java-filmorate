@@ -35,11 +35,7 @@ public class DirectorDbService implements DirectorService {
 
     @Override
     public DirectorDto findDirectorById(Long id) {
-        return DirectorMapper.mapToDirectorDto(directorStorage.findDirectorById(id).orElseThrow(() -> {
-            NotFoundException e = new NotFoundException("Жанр " + id + " не найден");
-            log.error(e.getMessage());
-            return e;
-        }));
+        return DirectorMapper.mapToDirectorDto(validateNotFound(id));
     }
 
     @Override

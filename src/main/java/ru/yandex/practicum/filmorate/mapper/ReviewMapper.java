@@ -37,8 +37,6 @@ public class ReviewMapper {
         if (request.hasIsPositive()) {
             review.setPositive(request.getIsPositive());
         }
-
-
         return review;
     }
 }

@@ -60,12 +60,7 @@ public class ReviewDbService implements ReviewService {
 
     @Override
     public boolean deleteReview(Long id) {
-        validateNotFound(id);
-        Optional<Review> reviewOptional = reviewStorage.findReviewById(id);
-        if (reviewOptional.isEmpty()) {
-            throw new NotFoundException("Review not found with id: " + id);
-        }
-        Long userId = reviewOptional.get().getUserId();
+        Long userId = validateNotFound(id).getUserId();
         feedService.addEvent(userId, EventType.REVIEW, EventOperation.REMOVE, id);
         return reviewStorage.deleteReviewById(id);
     }

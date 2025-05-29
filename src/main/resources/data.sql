@@ -15,3 +15,5 @@ KEY (rating_id) VALUES
 (4, 'R'),
 (5, 'NC-17');
 
+
+

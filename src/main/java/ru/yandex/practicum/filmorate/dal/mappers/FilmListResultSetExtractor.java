@@ -33,8 +33,15 @@ public class FilmListResultSetExtractor implements ResultSetExtractor<List<Film>
                 idToFilm.put(currentId, film);
                 film.setMpa(new Mpa(rs.getInt("rating_id"), rs.getString("rating_name")));
             }
-            if (rs.getInt("genre_id") != 0) {
-                film.addGenre(rs.getInt("genre_id"), rs.getString("genre_name"));
+            int genreId = rs.getInt("genre_id");
+            if (rs.getInt("genre_id") != 0
+                    && film.getGenres().stream().noneMatch(g -> g.getId() == genreId)) {
+                film.addGenre(genreId, rs.getString("genre_name"));
+            }
+            long directorId = rs.getLong("director_id");
+            if (rs.getLong("director_id") != 0
+                    && film.getDirectors().stream().noneMatch(d -> d.getId() == directorId)) {
+                film.addDirector(directorId, rs.getString("director_name"));
             }
         }
         return idToFilm.values().stream().toList();

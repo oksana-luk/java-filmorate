@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
@@ -29,6 +30,7 @@ public class UpdateFilmRequest implements BaseFilmDto {
     private Mpa mpa;
 
     private List<Genre> genres = new LinkedList<>();
+    private List<Director> directors = new LinkedList<>();
 
     public boolean hasName() {
         return ! (name == null || name.isBlank());
@@ -52,5 +54,13 @@ public class UpdateFilmRequest implements BaseFilmDto {
 
     public boolean hasGenres() {
         return ! genres.isEmpty();
+    }
+
+    public boolean hasDirectors() {
+        return !directors.isEmpty();
+    }
+
+    public boolean hasId() {
+        return id != null;
     }
 }

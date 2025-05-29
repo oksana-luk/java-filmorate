@@ -1,16 +1,18 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.film.FilmDto;
 import ru.yandex.practicum.filmorate.dto.film.NewFilmRequest;
 import ru.yandex.practicum.filmorate.dto.film.UpdateFilmRequest;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Map;
 
@@ -18,6 +20,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/films")
 @RequiredArgsConstructor
+@Validated
 public class FilmController {
     private final FilmService filmService;
 
@@ -76,11 +79,45 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public Collection<Film> getPopularFilms(@RequestParam(defaultValue = "10") Integer count) {
+    public Collection<FilmDto> getPopularFilms(@RequestParam(defaultValue = "10") Integer count, @RequestParam(required = false) Integer genreId,
+                                            @RequestParam(required = false) String year) {
         count = (count == null) ? 10 : count;
+        LocalDate yearDate = null;
+        if (year != null && !year.isEmpty()) {
+            yearDate = LocalDate.of(Integer.parseInt(year), 1, 1);
+        }
         log.debug("GET/films/popular: start of finding {} popular movie", count);
-        Collection<Film> films = filmService.getPopularFilms(count);
+        Collection<FilmDto> films = filmService.getPopularFilms(count, genreId, yearDate);
         log.debug("GET/films/process: the process was completed successfully. The collection of {} popular movies has been returned", count);
+        return films;
+    }
+
+    @GetMapping("/director/{directorId}")
+    public Collection<FilmDto> getDirectorFilms(
+            @RequestParam(required = false) @Pattern(regexp = "year|likes", message = "Invalid sortBy value") String sortBy,
+            @PathVariable Long directorId) {
+        log.debug("GET/films/director/{}: start looking for director {} movies sorted by {}", directorId, directorId,sortBy);
+        Collection<FilmDto> films = filmService.getDirectorFilms(sortBy, directorId);
+        log.debug("GET/films/director/{}: films of director {} sorted by {} found", directorId, directorId,sortBy);
+        return films;
+    }
+
+    @GetMapping("/common")
+    public Collection<FilmDto> getFriendsCommonFilms(@RequestParam Long userId, @RequestParam Long friendId) {
+        log.debug("GET/films/common: start of finding {} common movie");
+        Collection<FilmDto> films = filmService.getFriendsCommonFilms(userId, friendId);
+        log.debug("GET/films/process: the process was completed successfully. The collection of {} common movies has been returned");
+        return films;
+    }
+
+    @GetMapping("/search")
+    public Collection<FilmDto> searchFilmsByString(
+            @RequestParam String query,
+            @RequestParam(required = false) @Pattern(regexp = "^(title|director)(,(title|director))?$",
+                    message = "Invalid sortBy value") String by) {
+        log.debug("GET/films/search: start of finding {} in movies", query);
+        Collection<FilmDto> films = filmService.searchFilmsByString(query, by);
+        log.debug("GET/films/process: the process was completed successfully. The collection movies has been returned");
         return films;
     }
 }

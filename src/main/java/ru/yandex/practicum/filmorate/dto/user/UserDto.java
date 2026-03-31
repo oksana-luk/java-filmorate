@@ -7,7 +7,7 @@ import java.time.LocalDate;
 
 @Data
 public class UserDto implements BaseUserDto {
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @JsonProperty(access = JsonProperty.Access.READ_WRITE)
     private Long id;
     private String email;
     private String login;

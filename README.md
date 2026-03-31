@@ -11,7 +11,7 @@ Additional information is **name** and **birthday**.
 ```sql
 SELECT *
 FROM user
-```
+```![img.png](img.png)
 ```sql
 SELECT *
 FROM user

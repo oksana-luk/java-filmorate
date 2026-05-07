@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.dto.film;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -17,8 +18,10 @@ public class UpdateFilmRequest implements BaseFilmDto {
     @NotNull
     private Long id;
 
+    @NotBlank(message = "Movie title should not be empty")
     private String name;
 
+    @NotNull
     @Size(min = 0, max = 200, message = "Description should be not longer 200 letters.")
     private String description;
 
@@ -37,7 +40,7 @@ public class UpdateFilmRequest implements BaseFilmDto {
     }
 
     public boolean hasDescription() {
-        return ! (description == null || description.isBlank());
+        return description != null;
     }
 
     public boolean hasReleaseDate() {
